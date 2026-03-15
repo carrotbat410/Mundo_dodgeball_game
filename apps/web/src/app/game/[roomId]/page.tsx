@@ -5,7 +5,7 @@ import type { RoomGameController } from "../../../lib/phaser/createGame";
 import { Q_COOLDOWN_SEC } from "@mundo/shared";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { detectLocale, t } from "../../../lib/i18n/messages";
+import { detectLocale, t, tf } from "../../../lib/i18n/messages";
 import { getCurrentRoomId } from "../../../lib/room/currentRoom";
 import { getSocket } from "../../../lib/socket/client";
 import { getGuestSession } from "../../../lib/session/guestSession";
@@ -23,11 +23,26 @@ function getResultLabel(
   }
 
   if (!myTeam) {
-    return result === "blue_win" ? "블루팀 승리" : "레드팀 승리";
+    return result === "blue_win" ? "blue_win" : "red_win";
   }
 
   const myWin = (result === "blue_win" && myTeam === "blue") || (result === "red_win" && myTeam === "red");
   return myWin ? "승리" : "패배";
+}
+
+function getStatusLabel(locale: "ko" | "en", status: RoomState["room"]["status"] | GameStateSnapshot["status"]) {
+  switch (status) {
+    case "waiting":
+      return t(locale, "game.status.waiting");
+    case "countdown":
+      return t(locale, "game.status.countdown");
+    case "playing":
+      return t(locale, "game.status.playing");
+    case "finished":
+      return t(locale, "game.status.finished");
+    default:
+      return status;
+  }
 }
 
 export default function GamePage() {
@@ -153,7 +168,11 @@ export default function GamePage() {
         ? t(locale, "game.result.win")
         : resultLabel === "패배"
           ? t(locale, "game.result.lose")
-          : resultLabel;
+          : resultLabel === "blue_win"
+            ? t(locale, "game.teamBlue")
+            : resultLabel === "red_win"
+              ? t(locale, "game.teamRed")
+              : resultLabel;
 
   return (
     <main className="page-shell">
@@ -183,7 +202,7 @@ export default function GamePage() {
             <div style={{ textAlign: "center", display: "grid", gap: 10 }}>
               <strong style={{ fontSize: 48, color: "var(--text)" }}>{localizedResultLabel}</strong>
               <span style={{ color: "var(--muted)", fontSize: 18 }}>
-                {gameState.resultDelayRemaining.toFixed(1)}초 후 로비로 돌아갑니다.
+                {tf(locale, "game.returnToLobbySoon", { seconds: gameState.resultDelayRemaining.toFixed(1) })}
               </span>
             </div>
           </div>
@@ -212,7 +231,7 @@ export default function GamePage() {
                 fontWeight: 700
               }}
             >
-              탈락! 경기 종료까지 관전 중입니다.
+              {t(locale, "game.spectating")}
             </div>
           </div>
         ) : null}
@@ -221,7 +240,7 @@ export default function GamePage() {
           <p style={{ margin: 0, color: "var(--accent)", fontWeight: 700 }}>{t(locale, "game.scene")}</p>
           <h1 style={{ margin: 0, fontSize: 36 }}>{t(locale, "game.title")}</h1>
           <p style={{ margin: 0, color: error ? "#ff9388" : "var(--muted)", lineHeight: 1.6 }}>
-            {error || "우클릭으로 이동하고, Q를 누르면 현재 마우스 방향으로 식칼을 던집니다."}
+            {error || t(locale, "game.instructions")}
           </p>
         </div>
 
@@ -263,9 +282,9 @@ export default function GamePage() {
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <strong>Q 식칼</strong>
+                <strong>{t(locale, "game.qSkill")}</strong>
                 <span style={{ color: meGamePlayer?.qCooldownRemaining ? "var(--muted)" : "var(--accent)", fontWeight: 700 }}>
-                  {meGamePlayer ? (meGamePlayer.qCooldownRemaining > 0 ? `${meGamePlayer.qCooldownRemaining.toFixed(1)}초` : "READY") : "-"}
+                  {meGamePlayer ? (meGamePlayer.qCooldownRemaining > 0 ? `${meGamePlayer.qCooldownRemaining.toFixed(1)}s` : t(locale, "game.ready")) : "-"}
                 </span>
               </div>
               <div style={{ height: 10, borderRadius: 999, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
@@ -281,21 +300,21 @@ export default function GamePage() {
           </div>
 
           <aside className="panel" style={{ padding: 20, display: "grid", gap: 14, alignContent: "start" }}>
-            <h2 style={{ margin: 0, fontSize: 22 }}>{t(locale, "game.scene")}</h2>
+            <h2 style={{ margin: 0, fontSize: 22 }}>{t(locale, "game.sidebar")}</h2>
             <div style={{ display: "grid", gap: 8, color: "var(--muted)" }}>
-              <span>방 이름: {roomState?.room.name ?? "불러오는 중"}</span>
-              <span>모드: {gameState?.mode ?? roomState?.room.mode ?? "-"}</span>
-              <span>방 상태: {roomState?.room.status ?? "불러오는 중"}</span>
-              <span>게임 상태: {gameState?.status ?? "불러오는 중"}</span>
-              <span>카운트다운: {gameState ? gameState.countdownRemaining.toFixed(1) : "-"}</span>
-              <span>남은 시간: {gameState ? gameState.remainingTime.toFixed(1) : "-"}</span>
-              <span>투사체 수: {gameState?.projectiles.length ?? 0}</span>
+              <span>{t(locale, "game.roomName")}: {roomState?.room.name ?? t(locale, "game.loading")}</span>
+              <span>{t(locale, "game.mode")}: {gameState?.mode ?? roomState?.room.mode ?? "-"}</span>
+              <span>{t(locale, "game.roomStatus")}: {roomState ? getStatusLabel(locale, roomState.room.status) : t(locale, "game.loading")}</span>
+              <span>{t(locale, "game.gameStatus")}: {gameState ? getStatusLabel(locale, gameState.status) : t(locale, "game.loading")}</span>
+              <span>{t(locale, "game.countdown")}: {gameState ? gameState.countdownRemaining.toFixed(1) : "-"}</span>
+              <span>{t(locale, "game.remainingTime")}: {gameState ? gameState.remainingTime.toFixed(1) : "-"}</span>
+              <span>{t(locale, "game.projectileCount")}: {gameState?.projectiles.length ?? 0}</span>
             </div>
-            <h2 style={{ margin: "8px 0 0", fontSize: 22 }}>참가자</h2>
-            {(gameState?.players ?? []).length === 0 ? <p style={{ margin: 0, color: "var(--muted)" }}>참가자 정보를 불러오는 중입니다.</p> : null}
+            <h2 style={{ margin: "8px 0 0", fontSize: 22 }}>{t(locale, "game.participants")}</h2>
+            {(gameState?.players ?? []).length === 0 ? <p style={{ margin: 0, color: "var(--muted)" }}>{t(locale, "game.loadingParticipants")}</p> : null}
             {(gameState?.players ?? []).map((player) => (
               <div key={player.playerId} style={{ padding: "12px 14px", borderRadius: 14, background: "rgba(255,255,255,0.04)", color: "var(--text)", opacity: player.alive ? 1 : 0.55 }}>
-                {player.nickname} · {player.team === "blue" ? "블루팀" : "레드팀"} · HP {player.hp} · {player.alive ? "생존" : "탈락"}
+                {player.nickname} · {player.team === "blue" ? t(locale, "game.teamBlue") : t(locale, "game.teamRed")} · HP {player.hp} · {player.alive ? t(locale, "game.alive") : t(locale, "game.eliminated")}
               </div>
             ))}
           </aside>
