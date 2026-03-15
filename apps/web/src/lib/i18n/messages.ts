@@ -26,3 +26,11 @@ export function detectLocale(): Locale {
 export function t(locale: Locale, key: keyof typeof koMessages) {
   return dictionaries[locale][key] ?? dictionaries.ko[key] ?? key;
 }
+
+export function tf(locale: Locale, key: keyof typeof koMessages, values: Record<string, string | number>) {
+  const template = t(locale, key);
+
+  return Object.entries(values).reduce((current, [name, value]) => {
+    return current.replaceAll(`{${name}}`, String(value));
+  }, template);
+}

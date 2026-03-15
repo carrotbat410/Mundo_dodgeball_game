@@ -4,6 +4,7 @@ import type { GameMode, RoomPlayer, RoomState } from "@mundo/shared";
 import { MAX_ROOM_NAME_LENGTH, MAX_ROOM_PASSWORD_LENGTH, MIN_ROOM_PASSWORD_LENGTH } from "@mundo/shared";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { detectLocale, t, tf } from "../../../lib/i18n/messages";
 import { getSocket } from "../../../lib/socket/client";
 import { clearCurrentRoomId, getCurrentRoomId } from "../../../lib/room/currentRoom";
 import { getGuestSession } from "../../../lib/session/guestSession";
@@ -26,12 +27,14 @@ function PlayerCard({
   player,
   meId,
   isHost,
-  onKick
+  onKick,
+  locale
 }: {
   player: RoomPlayer;
   meId: string | null;
   isHost: boolean;
   onKick: (playerId: string, nickname: string) => void;
+  locale: "ko" | "en";
 }) {
   const isMe = player.playerId === meId;
 
@@ -40,11 +43,11 @@ function PlayerCard({
       <div>
         <strong>{player.nickname}</strong>
         <p style={{ margin: "6px 0 0", color: "var(--muted)" }}>
-          {player.isHost ? "방장" : "참가자"} · {player.isReady ? "준비 완료" : "준비 전"}
+          {player.isHost ? t(locale, "room.host") : t(locale, "room.participant")} · {player.isReady ? t(locale, "room.readyDone") : t(locale, "room.readyPending")}
         </p>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        {isMe ? <span style={{ color: "var(--accent)" }}>나</span> : null}
+        {isMe ? <span style={{ color: "var(--accent)" }}>{t(locale, "room.me")}</span> : null}
         {isHost && !isMe ? (
           <button
             type="button"
@@ -58,7 +61,7 @@ function PlayerCard({
               cursor: "pointer"
             }}
           >
-            강퇴
+            {t(locale, "room.kick")}
           </button>
         ) : null}
       </div>
@@ -72,7 +75,8 @@ function RoomSettingsModal({
   onClose,
   onSave,
   error,
-  currentPlayers
+  currentPlayers,
+  locale
 }: {
   draft: RoomSettingsDraft;
   onChange: (next: RoomSettingsDraft) => void;
@@ -80,6 +84,7 @@ function RoomSettingsModal({
   onSave: () => void;
   error: string;
   currentPlayers: number;
+  locale: "ko" | "en";
 }) {
   return (
     <div
@@ -96,16 +101,16 @@ function RoomSettingsModal({
       <div className="panel" style={{ width: "min(100%, 520px)", padding: 24, display: "grid", gap: 18 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
-            <h2 style={{ margin: 0, fontSize: 28 }}>방 설정 변경</h2>
-            <p style={{ margin: "8px 0 0", color: "var(--muted)" }}>현재 인원은 {currentPlayers}명입니다.</p>
+            <h2 style={{ margin: 0, fontSize: 28 }}>{t(locale, "room.settingsTitle")}</h2>
+            <p style={{ margin: "8px 0 0", color: "var(--muted)" }}>{tf(locale, "room.settingsCurrentPlayers", { count: currentPlayers })}</p>
           </div>
           <button type="button" onClick={onClose} style={{ padding: "10px 12px", borderRadius: 12, border: 0, background: "rgba(255,255,255,0.1)", color: "var(--text)", cursor: "pointer" }}>
-            닫기
+            {t(locale, "rooms.close")}
           </button>
         </div>
 
         <label style={{ display: "grid", gap: 8 }}>
-          <span>방 이름</span>
+          <span>{t(locale, "room.roomName")}</span>
           <input
             value={draft.name}
             onChange={(event) => onChange({ ...draft, name: event.target.value })}
@@ -121,7 +126,7 @@ function RoomSettingsModal({
         </label>
 
         <div style={{ display: "grid", gap: 8 }}>
-          <span>게임 모드</span>
+          <span>{t(locale, "room.mode")}</span>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             {(["1v1", "2v2", "3v3"] as GameMode[]).map((mode) => (
               <button
@@ -145,7 +150,7 @@ function RoomSettingsModal({
         </div>
 
         <div style={{ display: "grid", gap: 10 }}>
-          <span>방 공개 여부</span>
+          <span>{t(locale, "room.visibility")}</span>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             <button
               type="button"
@@ -160,7 +165,7 @@ function RoomSettingsModal({
                 cursor: "pointer"
               }}
             >
-              공개방
+              {t(locale, "rooms.public")}
             </button>
             <button
               type="button"
@@ -175,14 +180,14 @@ function RoomSettingsModal({
                 cursor: "pointer"
               }}
             >
-              비밀번호방
+              {t(locale, "rooms.private")}
             </button>
           </div>
         </div>
 
         {draft.isPrivate ? (
           <label style={{ display: "grid", gap: 8 }}>
-            <span>비밀번호</span>
+            <span>{t(locale, "room.password")}</span>
             <input
               value={draft.password}
               onChange={(event) => onChange({ ...draft, password: event.target.value })}
@@ -196,20 +201,20 @@ function RoomSettingsModal({
                 color: "var(--text)"
               }}
             />
-            <span style={{ color: "var(--muted)", fontSize: 14 }}>비밀번호는 {MIN_ROOM_PASSWORD_LENGTH}자 이상 {MAX_ROOM_PASSWORD_LENGTH}자 이하입니다.</span>
+            <span style={{ color: "var(--muted)", fontSize: 14 }}>{tf(locale, "room.passwordHint", { min: MIN_ROOM_PASSWORD_LENGTH, max: MAX_ROOM_PASSWORD_LENGTH })}</span>
           </label>
         ) : null}
 
         <p style={{ margin: 0, color: error ? "#ff9388" : "var(--muted)" }}>
-          {error || "모드를 변경하면 방장 제외 참가자들의 준비 상태가 초기화됩니다."}
+          {error || t(locale, "room.settingsHint")}
         </p>
 
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 12 }}>
           <button type="button" onClick={onClose} style={{ padding: "12px 16px", borderRadius: 14, border: 0, background: "rgba(255,255,255,0.12)", color: "var(--text)", cursor: "pointer" }}>
-            취소
+            {t(locale, "room.cancel")}
           </button>
           <button type="button" onClick={onSave} style={{ padding: "12px 16px", borderRadius: 14, border: 0, background: "var(--accent)", color: "#07111b", fontWeight: 700, cursor: "pointer" }}>
-            저장
+            {t(locale, "room.save")}
           </button>
         </div>
       </div>
@@ -227,6 +232,7 @@ export default function RoomPage() {
   const [error, setError] = useState("");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
+  const locale = useMemo(() => detectLocale(), []);
   const [settingsDraft, setSettingsDraft] = useState<RoomSettingsDraft>({
     name: "",
     mode: "2v2",
@@ -335,7 +341,7 @@ export default function RoomPage() {
   };
 
   const handleKick = (targetPlayerId: string, nickname: string) => {
-    const shouldKick = window.confirm(`${nickname}님을 정말 강퇴할까요?`);
+    const shouldKick = window.confirm(tf(locale, "room.kickConfirm", { nickname }));
 
     if (!shouldKick) {
       return;
@@ -390,7 +396,7 @@ export default function RoomPage() {
   if (!roomState) {
     return (
       <main className="page-shell">
-        <section className="panel" style={{ padding: 24 }}>방 상태를 불러오는 중입니다...</section>
+        <section className="panel" style={{ padding: 24 }}>{t(locale, "room.loading")}</section>
       </main>
     );
   }
@@ -405,6 +411,7 @@ export default function RoomPage() {
           onSave={handleSaveSettings}
           error={error}
           currentPlayers={roomState.players.length}
+          locale={locale}
         />
       ) : null}
       <section className="panel" style={{ padding: 24, display: "grid", gap: 20 }}>
@@ -415,11 +422,11 @@ export default function RoomPage() {
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
             <div style={{ color: "var(--muted)" }}>
-              {roomState.room.mode} · 코드 {roomState.room.roomCode} · {roomState.room.isPrivate ? "비밀번호방" : "공개방"}
+              {roomState.room.mode} · {t(locale, "room.code")} {roomState.room.roomCode} · {roomState.room.isPrivate ? t(locale, "rooms.private") : t(locale, "rooms.public")}
             </div>
             {me?.isHost ? (
               <button type="button" onClick={handleOpenSettings} style={{ padding: "12px 16px", borderRadius: 14, border: 0, background: "rgba(255,255,255,0.12)", color: "var(--text)", cursor: "pointer" }}>
-                방 설정
+                {t(locale, "room.settings")}
               </button>
             ) : null}
           </div>
@@ -427,27 +434,27 @@ export default function RoomPage() {
         <div style={{ display: "grid", gridTemplateColumns: "1.7fr 1fr", gap: 20 }}>
           <section style={{ display: "grid", gap: 16 }}>
             <button type="button" className="panel" onClick={() => handleTeamChange("blue")} style={{ padding: 16, background: "rgba(71,184,255,0.12)", border: 0, color: "var(--text)", textAlign: "left", cursor: "pointer" }}>
-              <strong>블루팀 ({bluePlayers.length}명)</strong>
-              <p style={{ margin: "10px 0 0", color: "var(--muted)" }}>이 바를 클릭하면 블루팀으로 이동합니다.</p>
+              <strong>{t(locale, "room.blueTeam")} ({bluePlayers.length})</strong>
+              <p style={{ margin: "10px 0 0", color: "var(--muted)" }}>{t(locale, "room.teamMoveBlue")}</p>
             </button>
             {bluePlayers.map((player) => (
-              <PlayerCard key={player.playerId} player={player} meId={me?.playerId ?? null} isHost={Boolean(me?.isHost)} onKick={handleKick} />
+              <PlayerCard key={player.playerId} player={player} meId={me?.playerId ?? null} isHost={Boolean(me?.isHost)} onKick={handleKick} locale={locale} />
             ))}
             <button type="button" className="panel" onClick={() => handleTeamChange("red")} style={{ padding: 16, background: "rgba(255,109,94,0.12)", border: 0, color: "var(--text)", textAlign: "left", cursor: "pointer" }}>
-              <strong>레드팀 ({redPlayers.length}명)</strong>
-              <p style={{ margin: "10px 0 0", color: "var(--muted)" }}>이 바를 클릭하면 레드팀으로 이동합니다.</p>
+              <strong>{t(locale, "room.redTeam")} ({redPlayers.length})</strong>
+              <p style={{ margin: "10px 0 0", color: "var(--muted)" }}>{t(locale, "room.teamMoveRed")}</p>
             </button>
             {redPlayers.map((player) => (
-              <PlayerCard key={player.playerId} player={player} meId={me?.playerId ?? null} isHost={Boolean(me?.isHost)} onKick={handleKick} />
+              <PlayerCard key={player.playerId} player={player} meId={me?.playerId ?? null} isHost={Boolean(me?.isHost)} onKick={handleKick} locale={locale} />
             ))}
           </section>
           <aside className="panel" style={{ padding: 18, display: "grid", gap: 14 }}>
-            <h2 style={{ margin: 0, fontSize: 22 }}>채팅</h2>
+            <h2 style={{ margin: 0, fontSize: 22 }}>{t(locale, "room.chat")}</h2>
             <div
               ref={chatScrollRef}
               style={{ minHeight: 220, maxHeight: 300, overflowY: "auto", color: "var(--muted)", lineHeight: 1.7, display: "grid", gap: 8 }}
             >
-              {chatEntries.length === 0 ? <span>아직 메시지가 없습니다.</span> : null}
+              {chatEntries.length === 0 ? <span>{t(locale, "room.chatEmpty")}</span> : null}
               {chatEntries.map((entry) => (
                 <div key={entry.id} style={{ color: entry.tone === "system" ? "var(--muted)" : "var(--text)" }}>
                   {entry.sender ? <strong>{entry.sender}: </strong> : null}
@@ -463,7 +470,7 @@ export default function RoomPage() {
                   handleSendChat();
                 }
               }}
-              placeholder="메시지 입력"
+              placeholder={t(locale, "room.messagePlaceholder")}
               style={{
                 padding: "14px 16px",
                 borderRadius: 14,
@@ -473,26 +480,26 @@ export default function RoomPage() {
               }}
             />
             <button type="button" onClick={handleSendChat} style={{ padding: "12px 16px", borderRadius: 14, border: 0, background: "rgba(255,255,255,0.12)", color: "var(--text)", cursor: "pointer" }}>
-              전송
+              {t(locale, "room.send")}
             </button>
           </aside>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
           <p style={{ margin: 0, color: error ? "#ff9388" : "var(--muted)" }}>
-            {error || "정원 충족 + 방장 제외 전원 준비 완료 시 방장이 시작할 수 있습니다."}
+            {error || t(locale, "room.startHint")}
           </p>
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
             {me?.isHost ? (
               <button type="button" onClick={() => getSocket().emit("room:start-game")} disabled={!canStart} style={{ padding: "12px 16px", borderRadius: 14, border: 0, background: canStart ? "var(--accent)" : "rgba(255,255,255,0.12)", color: canStart ? "#07111b" : "var(--muted)", fontWeight: 700, cursor: canStart ? "pointer" : "not-allowed" }}>
-                게임 시작
+                {t(locale, "room.start")}
               </button>
             ) : (
               <button type="button" onClick={handleReadyToggle} style={{ padding: "12px 16px", borderRadius: 14, border: 0, background: me?.isReady ? "rgba(255,255,255,0.12)" : "var(--accent)", color: me?.isReady ? "var(--text)" : "#07111b", fontWeight: 700, cursor: "pointer" }}>
-                {me?.isReady ? "준비 취소" : "준비"}
+                {me?.isReady ? t(locale, "room.unready") : t(locale, "room.ready")}
               </button>
             )}
             <button type="button" onClick={handleLeave} style={{ padding: "12px 16px", borderRadius: 14, border: 0, background: "rgba(255,255,255,0.12)", color: "var(--text)", cursor: "pointer" }}>
-              나가기
+              {t(locale, "room.leave")}
             </button>
           </div>
         </div>
