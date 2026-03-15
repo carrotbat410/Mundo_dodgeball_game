@@ -1,8 +1,9 @@
 "use client";
 
 import type { RoomState } from "@mundo/shared";
+import type Phaser from "phaser";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { getCurrentRoomId } from "../../../lib/room/currentRoom";
 import { getSocket } from "../../../lib/socket/client";
 import { getGuestSession } from "../../../lib/session/guestSession";
@@ -13,6 +14,8 @@ export default function GamePage() {
   const roomId = Array.isArray(params.roomId) ? params.roomId[0] : params.roomId;
   const [roomState, setRoomState] = useState<RoomState | null>(null);
   const [error, setError] = useState("");
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const gameRef = useRef<Phaser.Game | null>(null);
 
   useEffect(() => {
     const session = getGuestSession();
@@ -54,6 +57,28 @@ export default function GamePage() {
     }
   }, [roomState, router]);
 
+  useEffect(() => {
+    if (!containerRef.current || gameRef.current) {
+      return;
+    }
+
+    let disposed = false;
+
+    void import("../../../lib/phaser/createGame").then(({ createRoomGame }) => {
+      if (disposed || !containerRef.current) {
+        return;
+      }
+
+      gameRef.current = createRoomGame(containerRef.current);
+    });
+
+    return () => {
+      disposed = true;
+      gameRef.current?.destroy(true);
+      gameRef.current = null;
+    };
+  }, []);
+
   const playerSummary = useMemo(() => {
     if (!roomState) {
       return [];
@@ -76,9 +101,9 @@ export default function GamePage() {
       >
         <div style={{ display: "grid", gap: 8 }}>
           <p style={{ margin: 0, color: "var(--accent)", fontWeight: 700 }}>Game Scene</p>
-          <h1 style={{ margin: 0, fontSize: 36 }}>카운트다운/Phaser 전장 연결 예정</h1>
+          <h1 style={{ margin: 0, fontSize: 36 }}>Phaser 전장 프리뷰 연결 완료</h1>
           <p style={{ margin: 0, color: error ? "#ff9388" : "var(--muted)", lineHeight: 1.6 }}>
-            {error || "스프린트 2부터 고정 맵, 카운트다운, 우클릭 이동을 여기에 붙입니다."}
+            {error || "다음 단계에서는 여기에 카운트다운, 플레이어 렌더링, 우클릭 이동을 붙입니다."}
           </p>
         </div>
 
@@ -87,20 +112,32 @@ export default function GamePage() {
             className="panel"
             style={{
               minHeight: 520,
-              display: "grid",
-              placeItems: "center",
-              background: "radial-gradient(circle at 50% 40%, rgba(71,184,255,0.16), rgba(7,17,27,0.4) 45%, rgba(255,255,255,0.04))"
+              padding: 16,
+              background: "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02))"
             }}
           >
-            <div style={{ textAlign: "center", display: "grid", gap: 10 }}>
-              <strong style={{ fontSize: 22 }}>{roomState?.room.name ?? "게임 방"}</strong>
-              <span style={{ color: "var(--muted)" }}>현재 상태: {roomState?.room.status ?? "불러오는 중"}</span>
-              <span style={{ color: "var(--muted)" }}>방 ID: {roomId}</span>
-            </div>
+            <div
+              ref={containerRef}
+              style={{
+                width: "100%",
+                minHeight: 488,
+                display: "grid",
+                placeItems: "center",
+                overflow: "hidden",
+                borderRadius: 18,
+                background: "rgba(7,17,27,0.9)"
+              }}
+            />
           </div>
 
           <aside className="panel" style={{ padding: 20, display: "grid", gap: 14, alignContent: "start" }}>
             <h2 style={{ margin: 0, fontSize: 22 }}>참가자</h2>
+            <div style={{ display: "grid", gap: 8, color: "var(--muted)" }}>
+              <span>방 이름: {roomState?.room.name ?? "불러오는 중"}</span>
+              <span>모드: {roomState?.room.mode ?? "-"}</span>
+              <span>상태: {roomState?.room.status ?? "불러오는 중"}</span>
+              <span>방 코드: {roomState?.room.roomCode ?? "-"}</span>
+            </div>
             {playerSummary.length === 0 ? <p style={{ margin: 0, color: "var(--muted)" }}>참가자 정보를 불러오는 중입니다.</p> : null}
             {playerSummary.map((entry) => (
               <div key={entry} style={{ padding: "12px 14px", borderRadius: 14, background: "rgba(255,255,255,0.04)", color: "var(--text)" }}>
