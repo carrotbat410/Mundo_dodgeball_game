@@ -81,9 +81,16 @@ export default function RoomPage() {
     };
   }, [roomId, router]);
 
+  useEffect(() => {
+    if (roomState?.room.status === "countdown") {
+      router.push(`/game/${roomState.room.roomId}`);
+    }
+  }, [roomState, router]);
+
+  const socketId = getSocket().id;
   const me = useMemo(() => {
-    return roomState?.players.find((player) => player.socketId === getSocket().id) ?? null;
-  }, [roomState]);
+    return roomState?.players.find((player) => player.socketId === socketId) ?? null;
+  }, [roomState, socketId]);
 
   const bluePlayers = roomState?.players.filter((player) => player.team === "blue") ?? [];
   const redPlayers = roomState?.players.filter((player) => player.team === "red") ?? [];
