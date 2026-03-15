@@ -2,8 +2,8 @@ import "./globals.css";
 import type { ReactNode } from "react";
 
 export const metadata = {
-  title: "문도피구",
-  description: "문도피구 웹 게임"
+  title: "Mundo Dodgeball",
+  description: "Mundo Dodgeball web game"
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

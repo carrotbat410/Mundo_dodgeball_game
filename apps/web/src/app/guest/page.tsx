@@ -3,6 +3,7 @@
 import { MAX_NICKNAME_LENGTH } from "@mundo/shared";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { t, tf } from "../../lib/i18n/messages";
 import { getSocket } from "../../lib/socket/client";
 import { saveGuestSession } from "../../lib/session/guestSession";
 
@@ -59,7 +60,7 @@ export default function GuestPage() {
     const trimmed = nickname.trim();
 
     if (!trimmed || trimmed.length > MAX_NICKNAME_LENGTH) {
-      setError(`닉네임은 1자 이상 ${MAX_NICKNAME_LENGTH}자 이하로 입력해주세요.`);
+      setError(tf(locale, "guest.nicknameError", { max: MAX_NICKNAME_LENGTH }));
       return;
     }
 
@@ -108,14 +109,12 @@ export default function GuestPage() {
             ))}
           </div>
         </div>
-        <h1 style={{ margin: 0, fontSize: 40 }}>{locale === "ko" ? "문도피구" : "Mundo Dodgeball"}</h1>
+        <h1 style={{ margin: 0, fontSize: 40 }}>{t(locale, "guest.title")}</h1>
         <p style={{ margin: 0, color: "var(--muted)", lineHeight: 1.6 }}>
-          {locale === "ko"
-            ? "게스트로 입장해서 방을 만들고 친구들과 심리전 중심의 문도피구를 즐겨보세요."
-            : "Enter as a guest, create a room, and enjoy a mind-game-focused Mundo dodgeball match."}
+          {t(locale, "guest.subtitle")}
         </p>
         <label style={{ display: "grid", gap: 8 }}>
-          <span>{locale === "ko" ? "닉네임" : "Nickname"}</span>
+          <span>{t(locale, "guest.nickname")}</span>
           <input
             value={nickname}
             onChange={(event) => setNickname(event.target.value.slice(0, MAX_NICKNAME_LENGTH))}
@@ -124,7 +123,7 @@ export default function GuestPage() {
                 handleSubmit();
               }
             }}
-            placeholder={locale === "ko" ? "최대 12글자" : "Up to 12 characters"}
+            placeholder={t(locale, "guest.nicknamePlaceholder")}
             style={{
               padding: "14px 16px",
               borderRadius: 14,
@@ -135,7 +134,7 @@ export default function GuestPage() {
           />
         </label>
         <p style={{ margin: 0, color: error ? "#ff9388" : "var(--muted)", fontSize: 14 }}>
-          {error || (locale === "ko" ? `닉네임은 최대 ${MAX_NICKNAME_LENGTH}글자이며 중복 허용입니다.` : `Nicknames allow duplicates and can be up to ${MAX_NICKNAME_LENGTH} characters.`)}
+          {error || tf(locale, "guest.nicknameHint", { max: MAX_NICKNAME_LENGTH })}
         </p>
         <button
           type="button"
@@ -152,7 +151,7 @@ export default function GuestPage() {
             cursor: canSubmit ? "pointer" : "not-allowed"
           }}
         >
-          {isSubmitting ? (locale === "ko" ? "입장 중..." : "Joining...") : locale === "ko" ? "입장하기" : "Enter"}
+          {isSubmitting ? t(locale, "guest.entering") : t(locale, "guest.enter")}
         </button>
       </section>
     </main>

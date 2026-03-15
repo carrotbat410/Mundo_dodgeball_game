@@ -3,7 +3,7 @@
 import { GAME_MODES, MAX_ROOM_NAME_LENGTH, MAX_ROOM_PASSWORD_LENGTH, MIN_ROOM_PASSWORD_LENGTH, type GameMode, type RoomSummary } from "@mundo/shared";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { detectLocale, t } from "../../lib/i18n/messages";
+import { detectLocale, t, tf } from "../../lib/i18n/messages";
 import { getSocket } from "../../lib/socket/client";
 import { getGuestSession } from "../../lib/session/guestSession";
 import { saveCurrentRoomId } from "../../lib/room/currentRoom";
@@ -47,7 +47,7 @@ export default function RoomsPage() {
       setError(payload.message);
 
       if (payload.code === "PASSWORD_REQUIRED") {
-        const input = window.prompt("비밀번호를 입력해주세요.");
+        const input = window.prompt(t(locale, "rooms.promptPassword"));
         const normalizedPassword = input?.trim();
 
         if (!normalizedPassword) {
@@ -71,7 +71,7 @@ export default function RoomsPage() {
       socket.off("room:joined", handleJoined);
       socket.off("system:error", handleError);
     };
-  }, [roomCode, router]);
+  }, [locale, roomCode, router]);
 
   const sortedRooms = useMemo(() => {
     return [...rooms].sort((a, b) => {
@@ -87,12 +87,12 @@ export default function RoomsPage() {
     const trimmedName = name.trim();
 
     if (!trimmedName || trimmedName.length > MAX_ROOM_NAME_LENGTH) {
-      setError(`방 이름은 1자 이상 ${MAX_ROOM_NAME_LENGTH}자 이하로 입력해주세요.`);
+      setError(tf(locale, "rooms.errorRoomName", { max: MAX_ROOM_NAME_LENGTH }));
       return;
     }
 
     if (isPrivate && (password.length < MIN_ROOM_PASSWORD_LENGTH || password.length > MAX_ROOM_PASSWORD_LENGTH)) {
-      setError(`비밀번호는 ${MIN_ROOM_PASSWORD_LENGTH}자 이상 ${MAX_ROOM_PASSWORD_LENGTH}자 이하로 입력해주세요.`);
+      setError(tf(locale, "rooms.errorPasswordLength", { min: MIN_ROOM_PASSWORD_LENGTH, max: MAX_ROOM_PASSWORD_LENGTH }));
       return;
     }
 
@@ -109,12 +109,12 @@ export default function RoomsPage() {
     setError("");
 
     if (room.status !== "waiting") {
-      setError("게임중 방은 입장할 수 없습니다.");
+      setError(t(locale, "rooms.errorPlaying"));
       return;
     }
 
     if (room.isPrivate) {
-      const input = window.prompt("비밀번호를 입력해주세요.");
+      const input = window.prompt(t(locale, "rooms.promptPassword"));
 
       if (!input) {
         return;
@@ -131,19 +131,19 @@ export default function RoomsPage() {
     const normalized = roomCode.trim().toUpperCase();
 
     if (!normalized) {
-      setError("방 코드를 입력해주세요.");
+      setError(t(locale, "rooms.errorCodeRequired"));
       return;
     }
 
     const listedRoom = rooms.find((room) => room.roomCode === normalized);
 
     if (listedRoom?.status === "playing") {
-      setError("게임중 방은 입장할 수 없습니다.");
+      setError(t(locale, "rooms.errorPlaying"));
       return;
     }
 
     if (listedRoom?.isPrivate) {
-      const input = window.prompt("비밀번호를 입력해주세요.");
+      const input = window.prompt(t(locale, "rooms.promptPassword"));
 
       if (!input) {
         return;
@@ -183,11 +183,11 @@ export default function RoomsPage() {
 
       {isCreateOpen ? (
         <section className="panel" style={{ padding: 20, display: "grid", gap: 14 }}>
-          <h2 style={{ margin: 0 }}>방 만들기</h2>
+          <h2 style={{ margin: 0 }}>{t(locale, "rooms.createTitle")}</h2>
           <input
             value={name}
             onChange={(event) => setName(event.target.value.slice(0, MAX_ROOM_NAME_LENGTH))}
-            placeholder="방 이름"
+            placeholder={t(locale, "rooms.roomNamePlaceholder")}
             style={{ padding: "14px 16px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.04)", color: "var(--text)" }}
           />
           <div style={{ display: "flex", gap: 8 }}>
@@ -210,13 +210,13 @@ export default function RoomsPage() {
           </div>
           <label style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <input type="checkbox" checked={isPrivate} onChange={(event) => setIsPrivate(event.target.checked)} />
-            비밀번호 방
+            {t(locale, "rooms.privateToggle")}
           </label>
           {isPrivate ? (
             <input
               value={password}
               onChange={(event) => setPassword(event.target.value.slice(0, MAX_ROOM_PASSWORD_LENGTH))}
-              placeholder="비밀번호"
+              placeholder={t(locale, "rooms.passwordPlaceholder")}
               style={{ padding: "14px 16px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.04)", color: "var(--text)" }}
             />
           ) : null}
@@ -225,7 +225,7 @@ export default function RoomsPage() {
             onClick={handleCreateRoom}
             style={{ padding: "12px 16px", borderRadius: 14, border: 0, background: "var(--blue)", color: "#04131d", fontWeight: 700, cursor: "pointer" }}
           >
-            생성하기
+            {t(locale, "rooms.createSubmit")}
           </button>
         </section>
       ) : null}
@@ -272,7 +272,7 @@ export default function RoomsPage() {
           <input
             value={roomCode}
             onChange={(event) => setRoomCode(event.target.value.toUpperCase())}
-            placeholder="코드 입력"
+            placeholder={t(locale, "rooms.codePlaceholder")}
             style={{
               padding: "14px 16px",
               borderRadius: 14,
@@ -310,7 +310,7 @@ export default function RoomsPage() {
             {t(locale, "rooms.refresh")}
           </button>
           <p style={{ margin: 0, color: error ? "#ff9388" : "var(--muted)", lineHeight: 1.6 }}>
-            {error || "게임중 방은 목록에 표시만 하고 입장은 막습니다."}
+            {error || t(locale, "rooms.playingHint")}
           </p>
         </aside>
       </section>
