@@ -23,6 +23,7 @@ export class RoomGameScene extends Phaser.Scene {
   private countdownText?: Phaser.GameObjects.Text;
   private onMoveCommand: ((x: number, y: number) => void) | null = null;
   private onCastCommand: ((x: number, y: number) => void) | null = null;
+  private isQHeld = false;
 
   constructor() {
     super("room-game-scene");
@@ -50,8 +51,16 @@ export class RoomGameScene extends Phaser.Scene {
     });
 
     this.input.keyboard?.on("keydown-Q", () => {
+      if (this.isQHeld) {
+        return;
+      }
+
+      this.isQHeld = true;
       const pointer = this.input.activePointer;
       this.onCastCommand?.(pointer.worldX, pointer.worldY);
+    });
+    this.input.keyboard?.on("keyup-Q", () => {
+      this.isQHeld = false;
     });
 
     const graphics = this.add.graphics();
