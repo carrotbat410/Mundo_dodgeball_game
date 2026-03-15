@@ -23,3 +23,12 @@
 - 쿨타임 HUD
 - 충돌 판정
 - 체력 / 사망 / 승패
+
+## Post Sprint 3
+
+- 로비/게임 i18n 정리
+- 전투 피드백 polish
+- Phaser 씬 locale 주입 구조
+- HUD 시각 polish
+- 도트 아트 에셋 구조 준비
+- 배포 및 기존 사이트 연동 준비
