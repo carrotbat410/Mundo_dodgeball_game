@@ -1,9 +1,16 @@
 import Phaser from "phaser";
+import type { GameMode, RoomPlayer } from "@mundo/shared";
 import { MAP_CENTER_X, MAP_CENTER_Y } from "@mundo/shared";
 import { RoomGameScene } from "./scenes/RoomGameScene";
 
-export function createRoomGame(container: HTMLDivElement) {
-  return new Phaser.Game({
+export interface RoomGameController {
+  game: Phaser.Game;
+  updatePreview: (payload: { mode: GameMode; players: RoomPlayer[] }) => void;
+  destroy: () => void;
+}
+
+export function createRoomGame(container: HTMLDivElement): RoomGameController {
+  const game = new Phaser.Game({
     type: Phaser.AUTO,
     parent: container,
     width: MAP_CENTER_X * 2,
@@ -19,4 +26,15 @@ export function createRoomGame(container: HTMLDivElement) {
       pixelArt: false
     }
   });
+
+  return {
+    game,
+    updatePreview(payload) {
+      const scene = game.scene.getScene("room-game-scene") as RoomGameScene;
+      scene.updatePreview({ mode: payload.mode, players: payload.players });
+    },
+    destroy() {
+      game.destroy(true);
+    }
+  };
 }

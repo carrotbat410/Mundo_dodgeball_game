@@ -1,7 +1,7 @@
 "use client";
 
 import type { RoomState } from "@mundo/shared";
-import type Phaser from "phaser";
+import type { RoomGameController } from "../../../lib/phaser/createGame";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getCurrentRoomId } from "../../../lib/room/currentRoom";
@@ -15,7 +15,7 @@ export default function GamePage() {
   const [roomState, setRoomState] = useState<RoomState | null>(null);
   const [error, setError] = useState("");
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const gameRef = useRef<Phaser.Game | null>(null);
+  const gameRef = useRef<RoomGameController | null>(null);
 
   useEffect(() => {
     const session = getGuestSession();
@@ -70,14 +70,32 @@ export default function GamePage() {
       }
 
       gameRef.current = createRoomGame(containerRef.current);
+
+      if (roomState) {
+        gameRef.current.updatePreview({
+          mode: roomState.room.mode,
+          players: roomState.players
+        });
+      }
     });
 
     return () => {
       disposed = true;
-      gameRef.current?.destroy(true);
+      gameRef.current?.destroy();
       gameRef.current = null;
     };
-  }, []);
+  }, [roomState]);
+
+  useEffect(() => {
+    if (!roomState || !gameRef.current) {
+      return;
+    }
+
+    gameRef.current.updatePreview({
+      mode: roomState.room.mode,
+      players: roomState.players
+    });
+  }, [roomState]);
 
   const playerSummary = useMemo(() => {
     if (!roomState) {
@@ -101,9 +119,9 @@ export default function GamePage() {
       >
         <div style={{ display: "grid", gap: 8 }}>
           <p style={{ margin: 0, color: "var(--accent)", fontWeight: 700 }}>Game Scene</p>
-          <h1 style={{ margin: 0, fontSize: 36 }}>Phaser 전장 프리뷰 연결 완료</h1>
+          <h1 style={{ margin: 0, fontSize: 36 }}>Phaser 전장 프리뷰 + 참가자 마커</h1>
           <p style={{ margin: 0, color: error ? "#ff9388" : "var(--muted)", lineHeight: 1.6 }}>
-            {error || "다음 단계에서는 여기에 카운트다운, 플레이어 렌더링, 우클릭 이동을 붙입니다."}
+            {error || "다음 단계에서는 카운트다운, 우클릭 이동, 식칼 투사체를 여기에 붙입니다."}
           </p>
         </div>
 
