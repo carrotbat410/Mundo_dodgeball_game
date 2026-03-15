@@ -1,6 +1,7 @@
 "use client";
 
-import type { RoomPlayer, RoomState } from "@mundo/shared";
+import type { GameMode, RoomPlayer, RoomState } from "@mundo/shared";
+import { MAX_ROOM_NAME_LENGTH, MAX_ROOM_PASSWORD_LENGTH, MIN_ROOM_PASSWORD_LENGTH } from "@mundo/shared";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { getSocket } from "../../../lib/socket/client";
@@ -12,6 +13,13 @@ interface ChatEntry {
   tone: "user" | "system";
   text: string;
   sender?: string;
+}
+
+interface RoomSettingsDraft {
+  name: string;
+  mode: GameMode;
+  isPrivate: boolean;
+  password: string;
 }
 
 function PlayerCard({
@@ -58,6 +66,157 @@ function PlayerCard({
   );
 }
 
+function RoomSettingsModal({
+  draft,
+  onChange,
+  onClose,
+  onSave,
+  error,
+  currentPlayers
+}: {
+  draft: RoomSettingsDraft;
+  onChange: (next: RoomSettingsDraft) => void;
+  onClose: () => void;
+  onSave: () => void;
+  error: string;
+  currentPlayers: number;
+}) {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(4, 7, 14, 0.72)",
+        display: "grid",
+        placeItems: "center",
+        padding: 20,
+        zIndex: 20
+      }}
+    >
+      <div className="panel" style={{ width: "min(100%, 520px)", padding: 24, display: "grid", gap: 18 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <h2 style={{ margin: 0, fontSize: 28 }}>방 설정 변경</h2>
+            <p style={{ margin: "8px 0 0", color: "var(--muted)" }}>현재 인원은 {currentPlayers}명입니다.</p>
+          </div>
+          <button type="button" onClick={onClose} style={{ padding: "10px 12px", borderRadius: 12, border: 0, background: "rgba(255,255,255,0.1)", color: "var(--text)", cursor: "pointer" }}>
+            닫기
+          </button>
+        </div>
+
+        <label style={{ display: "grid", gap: 8 }}>
+          <span>방 이름</span>
+          <input
+            value={draft.name}
+            onChange={(event) => onChange({ ...draft, name: event.target.value })}
+            maxLength={MAX_ROOM_NAME_LENGTH}
+            style={{
+              padding: "14px 16px",
+              borderRadius: 14,
+              border: "1px solid rgba(255,255,255,0.12)",
+              background: "rgba(255,255,255,0.04)",
+              color: "var(--text)"
+            }}
+          />
+        </label>
+
+        <div style={{ display: "grid", gap: 8 }}>
+          <span>게임 모드</span>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            {(["1v1", "2v2", "3v3"] as GameMode[]).map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => onChange({ ...draft, mode })}
+                style={{
+                  padding: "12px 16px",
+                  borderRadius: 14,
+                  border: draft.mode === mode ? "1px solid transparent" : "1px solid rgba(255,255,255,0.12)",
+                  background: draft.mode === mode ? "var(--accent)" : "rgba(255,255,255,0.04)",
+                  color: draft.mode === mode ? "#07111b" : "var(--text)",
+                  fontWeight: 700,
+                  cursor: "pointer"
+                }}
+              >
+                {mode}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ display: "grid", gap: 10 }}>
+          <span>방 공개 여부</span>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <button
+              type="button"
+              onClick={() => onChange({ ...draft, isPrivate: false, password: "" })}
+              style={{
+                padding: "12px 16px",
+                borderRadius: 14,
+                border: draft.isPrivate ? "1px solid rgba(255,255,255,0.12)" : "1px solid transparent",
+                background: draft.isPrivate ? "rgba(255,255,255,0.04)" : "var(--accent)",
+                color: draft.isPrivate ? "var(--text)" : "#07111b",
+                fontWeight: 700,
+                cursor: "pointer"
+              }}
+            >
+              공개방
+            </button>
+            <button
+              type="button"
+              onClick={() => onChange({ ...draft, isPrivate: true })}
+              style={{
+                padding: "12px 16px",
+                borderRadius: 14,
+                border: draft.isPrivate ? "1px solid transparent" : "1px solid rgba(255,255,255,0.12)",
+                background: draft.isPrivate ? "var(--accent)" : "rgba(255,255,255,0.04)",
+                color: draft.isPrivate ? "#07111b" : "var(--text)",
+                fontWeight: 700,
+                cursor: "pointer"
+              }}
+            >
+              비밀번호방
+            </button>
+          </div>
+        </div>
+
+        {draft.isPrivate ? (
+          <label style={{ display: "grid", gap: 8 }}>
+            <span>비밀번호</span>
+            <input
+              value={draft.password}
+              onChange={(event) => onChange({ ...draft, password: event.target.value })}
+              minLength={MIN_ROOM_PASSWORD_LENGTH}
+              maxLength={MAX_ROOM_PASSWORD_LENGTH}
+              style={{
+                padding: "14px 16px",
+                borderRadius: 14,
+                border: "1px solid rgba(255,255,255,0.12)",
+                background: "rgba(255,255,255,0.04)",
+                color: "var(--text)"
+              }}
+            />
+            <span style={{ color: "var(--muted)", fontSize: 14 }}>비밀번호는 {MIN_ROOM_PASSWORD_LENGTH}자 이상 {MAX_ROOM_PASSWORD_LENGTH}자 이하입니다.</span>
+          </label>
+        ) : null}
+
+        <p style={{ margin: 0, color: error ? "#ff9388" : "var(--muted)" }}>
+          {error || "모드를 변경하면 방장 제외 참가자들의 준비 상태가 초기화됩니다."}
+        </p>
+
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 12 }}>
+          <button type="button" onClick={onClose} style={{ padding: "12px 16px", borderRadius: 14, border: 0, background: "rgba(255,255,255,0.12)", color: "var(--text)", cursor: "pointer" }}>
+            취소
+          </button>
+          <button type="button" onClick={onSave} style={{ padding: "12px 16px", borderRadius: 14, border: 0, background: "var(--accent)", color: "#07111b", fontWeight: 700, cursor: "pointer" }}>
+            저장
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function RoomPage() {
   const params = useParams<{ roomId: string }>();
   const router = useRouter();
@@ -66,6 +225,13 @@ export default function RoomPage() {
   const [chatEntries, setChatEntries] = useState<ChatEntry[]>([]);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [settingsDraft, setSettingsDraft] = useState<RoomSettingsDraft>({
+    name: "",
+    mode: "2v2",
+    isPrivate: false,
+    password: ""
+  });
 
   useEffect(() => {
     const session = getGuestSession();
@@ -80,6 +246,12 @@ export default function RoomPage() {
 
     const handleRoomState = (payload: RoomState) => {
       setRoomState(payload);
+      setSettingsDraft((current) => ({
+        name: payload.room.name,
+        mode: payload.room.mode,
+        isPrivate: payload.room.isPrivate,
+        password: current.isPrivate === payload.room.isPrivate ? current.password : ""
+      }));
       setError("");
     };
 
@@ -161,6 +333,30 @@ export default function RoomPage() {
     getSocket().emit("room:kick-player", { targetPlayerId });
   };
 
+  const handleOpenSettings = () => {
+    if (!roomState) {
+      return;
+    }
+
+    setSettingsDraft({
+      name: roomState.room.name,
+      mode: roomState.room.mode,
+      isPrivate: roomState.room.isPrivate,
+      password: ""
+    });
+    setIsSettingsOpen(true);
+  };
+
+  const handleSaveSettings = () => {
+    getSocket().emit("room:update-settings", {
+      name: settingsDraft.name,
+      mode: settingsDraft.mode,
+      isPrivate: settingsDraft.isPrivate,
+      password: settingsDraft.isPrivate ? settingsDraft.password : undefined
+    });
+    setIsSettingsOpen(false);
+  };
+
   const handleSendChat = () => {
     if (!message.trim()) {
       return;
@@ -190,14 +386,31 @@ export default function RoomPage() {
 
   return (
     <main className="page-shell">
+      {isSettingsOpen && me?.isHost ? (
+        <RoomSettingsModal
+          draft={settingsDraft}
+          onChange={setSettingsDraft}
+          onClose={() => setIsSettingsOpen(false)}
+          onSave={handleSaveSettings}
+          error={error}
+          currentPlayers={roomState.players.length}
+        />
+      ) : null}
       <section className="panel" style={{ padding: 24, display: "grid", gap: 20 }}>
-        <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
           <div>
             <p style={{ margin: 0, color: "var(--accent)", fontWeight: 700 }}>Room</p>
             <h1 style={{ margin: "8px 0 0", fontSize: 32 }}>{roomState.room.name}</h1>
           </div>
-          <div style={{ color: "var(--muted)" }}>
-            {roomState.room.mode} · 코드 {roomState.room.roomCode}
+          <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+            <div style={{ color: "var(--muted)" }}>
+              {roomState.room.mode} · 코드 {roomState.room.roomCode} · {roomState.room.isPrivate ? "비밀번호방" : "공개방"}
+            </div>
+            {me?.isHost ? (
+              <button type="button" onClick={handleOpenSettings} style={{ padding: "12px 16px", borderRadius: 14, border: 0, background: "rgba(255,255,255,0.12)", color: "var(--text)", cursor: "pointer" }}>
+                방 설정
+              </button>
+            ) : null}
           </div>
         </header>
         <div style={{ display: "grid", gridTemplateColumns: "1.7fr 1fr", gap: 20 }}>
@@ -250,21 +463,21 @@ export default function RoomPage() {
             </button>
           </aside>
         </div>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
           <p style={{ margin: 0, color: error ? "#ff9388" : "var(--muted)" }}>
             {error || "정원 충족 + 방장 제외 전원 준비 완료 시 방장이 시작할 수 있습니다."}
           </p>
-          <div style={{ display: "flex", gap: 12 }}>
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
             {me?.isHost ? (
               <button type="button" onClick={() => getSocket().emit("room:start-game")} disabled={!canStart} style={{ padding: "12px 16px", borderRadius: 14, border: 0, background: canStart ? "var(--accent)" : "rgba(255,255,255,0.12)", color: canStart ? "#07111b" : "var(--muted)", fontWeight: 700, cursor: canStart ? "pointer" : "not-allowed" }}>
                 게임 시작
               </button>
             ) : (
-              <button type="button" onClick={handleReadyToggle} style={{ padding: "12px 16px", borderRadius: 14, border: 0, background: me?.isReady ? "rgba(185,255,102,0.16)" : "rgba(255,255,255,0.12)", color: "var(--text)", fontWeight: 700, cursor: "pointer" }}>
+              <button type="button" onClick={handleReadyToggle} style={{ padding: "12px 16px", borderRadius: 14, border: 0, background: me?.isReady ? "rgba(255,255,255,0.12)" : "var(--accent)", color: me?.isReady ? "var(--text)" : "#07111b", fontWeight: 700, cursor: "pointer" }}>
                 {me?.isReady ? "준비 취소" : "준비"}
               </button>
             )}
-            <button type="button" onClick={handleLeave} style={{ padding: "12px 16px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.12)", background: "transparent", color: "var(--text)", cursor: "pointer" }}>
+            <button type="button" onClick={handleLeave} style={{ padding: "12px 16px", borderRadius: 14, border: 0, background: "rgba(255,255,255,0.12)", color: "var(--text)", cursor: "pointer" }}>
               나가기
             </button>
           </div>

@@ -1,9 +1,13 @@
 import {
+  MAX_ROOM_NAME_LENGTH,
+  MAX_ROOM_PASSWORD_LENGTH,
+  MIN_ROOM_PASSWORD_LENGTH,
   MODE_MAX_PLAYERS,
   TEAM_SIZE_BY_MODE,
   type GameMode,
   type RoomPlayer,
   type RoomState,
+  type RoomSettingsPayload,
   type Session,
   type Team
 } from "@mundo/shared";
@@ -22,18 +26,48 @@ function pickAutoTeam(room: Room): Team {
   return blueCount <= redCount ? "blue" : "red";
 }
 
-export function createRoom(
-  session: Session,
-  payload: {
-    name: string;
-    mode: GameMode;
-    isPrivate: boolean;
-    password?: string;
+function validateRoomSettings(payload: RoomSettingsPayload) {
+  const trimmedName = payload.name.trim();
+  const trimmedPassword = payload.password?.trim() ?? "";
+
+  if (!trimmedName || trimmedName.length > MAX_ROOM_NAME_LENGTH) {
+    throw new Error("INVALID_ROOM_NAME");
   }
-) {
+
+  if (payload.isPrivate) {
+    if (
+      trimmedPassword.length < MIN_ROOM_PASSWORD_LENGTH ||
+      trimmedPassword.length > MAX_ROOM_PASSWORD_LENGTH
+    ) {
+      throw new Error("INVALID_ROOM_PASSWORD");
+    }
+  }
+
+  return {
+    name: trimmedName,
+    mode: payload.mode,
+    isPrivate: payload.isPrivate,
+    password: payload.isPrivate ? trimmedPassword : undefined
+  } satisfies RoomSettingsPayload;
+}
+
+function ensureModeFitsCurrentPlayers(room: Room, nextMode: GameMode) {
+  if (room.players.length > MODE_MAX_PLAYERS[nextMode]) {
+    throw new Error("ROOM_MODE_TOO_SMALL");
+  }
+
+  const nextTeamSize = TEAM_SIZE_BY_MODE[nextMode];
+
+  if (countTeamPlayers(room, "blue") > nextTeamSize || countTeamPlayers(room, "red") > nextTeamSize) {
+    throw new Error("TEAM_LAYOUT_TOO_LARGE");
+  }
+}
+
+export function createRoom(session: Session, payload: RoomSettingsPayload) {
   const roomId = createId("room");
   const code = createRoomCode();
   const playerId = createId("player");
+  const normalized = validateRoomSettings(payload);
 
   const player: RoomPlayer = {
     playerId,
@@ -49,11 +83,11 @@ export function createRoom(
   const room: Room = {
     id: roomId,
     code,
-    name: payload.name,
-    mode: payload.mode,
-    maxPlayers: MODE_MAX_PLAYERS[payload.mode],
-    isPrivate: payload.isPrivate,
-    password: payload.password,
+    name: normalized.name,
+    mode: normalized.mode,
+    maxPlayers: MODE_MAX_PLAYERS[normalized.mode],
+    isPrivate: normalized.isPrivate,
+    password: normalized.password,
     hostPlayerId: playerId,
     status: "waiting",
     players: [player],
@@ -66,6 +100,30 @@ export function createRoom(
   serverState.roomCodeIndex.set(code, roomId);
 
   session.currentRoomId = roomId;
+
+  return room;
+}
+
+export function updateRoomSettings(room: Room, payload: RoomSettingsPayload) {
+  const normalized = validateRoomSettings(payload);
+
+  ensureModeFitsCurrentPlayers(room, normalized.mode);
+
+  room.name = normalized.name;
+  room.mode = normalized.mode;
+  room.maxPlayers = MODE_MAX_PLAYERS[normalized.mode];
+  room.isPrivate = normalized.isPrivate;
+  room.password = normalized.password;
+  room.updatedAt = Date.now();
+
+  room.players = room.players.map((player) =>
+    player.isHost
+      ? player
+      : {
+          ...player,
+          isReady: false
+        }
+  );
 
   return room;
 }

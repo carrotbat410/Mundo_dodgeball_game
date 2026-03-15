@@ -12,7 +12,8 @@ import {
   removePlayerFromRoom,
   removePlayerFromRoomById,
   setReadyState,
-  toRoomState
+  toRoomState,
+  updateRoomSettings
 } from "../../services/roomService";
 import { emitLobbyList } from "./lobbyHandler";
 
@@ -31,6 +32,26 @@ function emitRoomState(io: GameIo, roomId: string) {
 
 function emitError(socket: GameSocket, code: string, message: string) {
   socket.emit("system:error", { code, message });
+}
+
+function toFriendlyMessage(code: string, fallback: string) {
+  if (code === "INVALID_ROOM_NAME") {
+    return "방 이름은 비어 있을 수 없고 20자 이하여야 합니다.";
+  }
+
+  if (code === "INVALID_ROOM_PASSWORD") {
+    return "비밀번호는 4자 이상 20자 이하여야 합니다.";
+  }
+
+  if (code === "ROOM_MODE_TOO_SMALL") {
+    return "현재 인원보다 작은 모드로는 변경할 수 없습니다.";
+  }
+
+  if (code === "TEAM_LAYOUT_TOO_LARGE") {
+    return "현재 팀 배치로는 해당 모드로 변경할 수 없습니다.";
+  }
+
+  return fallback;
 }
 
 export function handleRoomDisconnect(io: GameIo, socketId: string) {
@@ -72,10 +93,15 @@ export function registerRoomHandler(io: GameIo, socket: GameSocket) {
       return;
     }
 
-    const room = createRoom(session, payload);
-    void socket.join(room.id);
-    socket.emit("room:joined", toRoomState(room));
-    emitLobbyList(io);
+    try {
+      const room = createRoom(session, payload);
+      void socket.join(room.id);
+      socket.emit("room:joined", toRoomState(room));
+      emitLobbyList(io);
+    } catch (error) {
+      const code = String((error as Error).message);
+      emitError(socket, code, toFriendlyMessage(code, "방 생성에 실패했습니다."));
+    }
   });
 
   socket.on("room:join", ({ roomId }) => {
@@ -215,6 +241,41 @@ export function registerRoomHandler(io: GameIo, socket: GameSocket) {
         code,
         code === "HOST_READY_NOT_ALLOWED" ? "방장은 시작 버튼을 사용합니다." : "준비 상태를 변경할 수 없습니다."
       );
+    }
+  });
+
+  socket.on("room:update-settings", (payload) => {
+    const session = serverState.sessions.get(socket.id);
+    const room = session?.currentRoomId ? serverState.rooms.get(session.currentRoomId) : null;
+
+    if (!room) {
+      emitError(socket, "ROOM_NOT_FOUND", "방을 찾을 수 없습니다.");
+      return;
+    }
+
+    const host = getPlayerBySocket(room, socket.id);
+
+    if (!host?.isHost) {
+      emitError(socket, "NOT_HOST", "방장만 방 설정을 변경할 수 있습니다.");
+      return;
+    }
+
+    if (room.status !== "waiting") {
+      emitError(socket, "ROOM_NOT_EDITABLE", "대기 상태에서만 방 설정을 변경할 수 있습니다.");
+      return;
+    }
+
+    try {
+      updateRoomSettings(room, payload);
+      io.to(room.id).emit("room:system-message", {
+        type: "room_updated",
+        message: `방 설정이 변경되었습니다. 현재 모드는 ${room.mode}입니다.`
+      });
+      emitRoomState(io, room.id);
+      emitLobbyList(io);
+    } catch (error) {
+      const code = String((error as Error).message);
+      emitError(socket, code, toFriendlyMessage(code, "방 설정 변경에 실패했습니다."));
     }
   });
 
