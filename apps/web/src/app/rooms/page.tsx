@@ -43,6 +43,20 @@ export default function RoomsPage() {
 
     const handleError = (payload: { code: string; message: string }) => {
       setError(payload.message);
+
+      if (payload.code === "PASSWORD_REQUIRED") {
+        const input = window.prompt("비밀번호를 입력해주세요.");
+        const normalizedPassword = input?.trim();
+
+        if (!normalizedPassword) {
+          return;
+        }
+
+        getSocket().emit("lobby:join-by-code", {
+          roomCode,
+          password: normalizedPassword
+        });
+      }
     };
 
     socket.on("lobby:list-updated", handleListUpdated);
@@ -55,7 +69,7 @@ export default function RoomsPage() {
       socket.off("room:joined", handleJoined);
       socket.off("system:error", handleError);
     };
-  }, [router]);
+  }, [roomCode, router]);
 
   const sortedRooms = useMemo(() => {
     return [...rooms].sort((a, b) => {
@@ -113,14 +127,32 @@ export default function RoomsPage() {
 
   const handleJoinByCode = () => {
     const normalized = roomCode.trim().toUpperCase();
-    const target = rooms.find((room) => room.roomCode === normalized);
 
-    if (!target) {
-      setError("입장 가능한 방 코드를 찾지 못했습니다.");
+    if (!normalized) {
+      setError("방 코드를 입력해주세요.");
       return;
     }
 
-    handleJoinRoom(target);
+    const listedRoom = rooms.find((room) => room.roomCode === normalized);
+
+    if (listedRoom?.status === "playing") {
+      setError("게임중 방은 입장할 수 없습니다.");
+      return;
+    }
+
+    if (listedRoom?.isPrivate) {
+      const input = window.prompt("비밀번호를 입력해주세요.");
+
+      if (!input) {
+        return;
+      }
+
+      getSocket().emit("lobby:join-by-code", { roomCode: normalized, password: input });
+      return;
+    }
+
+    setError("");
+    getSocket().emit("lobby:join-by-code", { roomCode: normalized });
   };
 
   return (

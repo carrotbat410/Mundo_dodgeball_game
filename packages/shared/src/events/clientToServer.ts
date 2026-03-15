@@ -11,6 +11,7 @@ export interface RoomSettingsPayload {
 export interface ClientToServerEvents {
   "guest:enter": (payload: { nickname: string; locale: "ko" | "en" }) => void;
   "lobby:list": () => void;
+  "lobby:join-by-code": (payload: { roomCode: string; password?: string }) => void;
   "room:create": (payload: RoomSettingsPayload) => void;
   "room:join": (payload: { roomId: string }) => void;
   "room:join-private": (payload: { roomId: string; password: string }) => void;
