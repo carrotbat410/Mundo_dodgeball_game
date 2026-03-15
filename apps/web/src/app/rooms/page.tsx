@@ -156,7 +156,7 @@ export default function RoomsPage() {
   };
 
   return (
-    <main className="page-shell" style={{ display: "grid", gap: 24 }}>
+    <main className="page-shell" style={{ display: "grid", gap: 18 }}>
       <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
           <p style={{ margin: 0, color: "var(--accent)", fontWeight: 700 }}>Lobby</p>
@@ -228,28 +228,29 @@ export default function RoomsPage() {
         </section>
       ) : null}
 
-      <section style={{ display: "grid", gridTemplateColumns: "1.8fr 1fr", gap: 20 }}>
-        <div style={{ display: "grid", gap: 14 }}>
+      <section style={{ display: "grid", gridTemplateColumns: "1.8fr 1fr", gap: 20, alignItems: "start" }}>
+        <div style={{ display: "grid", gap: 10, alignContent: "start" }}>
           {sortedRooms.map((room) => (
-            <article key={room.roomId} className="panel" style={{ padding: 20, display: "grid", gap: 10 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div>
-                  <strong style={{ fontSize: 20 }}>{room.name}</strong>
-                  <p style={{ margin: "4px 0 0", color: "var(--muted)" }}>
-                    {room.mode} · {room.currentPlayers} / {room.maxPlayers} · 코드 {room.roomCode}
-                  </p>
-                </div>
+            <article
+              key={room.roomId}
+              className="panel"
+              style={{ padding: "14px 16px", display: "grid", gap: 8 }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+                <strong style={{ fontSize: 18, lineHeight: 1.25 }}>{room.name}</strong>
                 <span style={{ color: room.status === "waiting" ? "var(--accent)" : "var(--muted)" }}>
                   {room.status === "waiting" ? "대기중" : "게임중"}
                 </span>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span>{room.isPrivate ? "비밀번호방" : "공개방"}</span>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                <span style={{ color: "var(--muted)", fontSize: 14 }}>
+                  {room.mode} · {room.currentPlayers}/{room.maxPlayers} · {room.isPrivate ? "비밀번호방" : "공개방"} · 코드 {room.roomCode}
+                </span>
                 <button
                   type="button"
                   onClick={() => handleJoinRoom(room)}
                   style={{
-                    padding: "10px 14px",
+                    padding: "8px 12px",
                     borderRadius: 12,
                     border: 0,
                     background: room.status === "waiting" ? "var(--blue)" : "rgba(255,255,255,0.14)",
@@ -264,7 +265,7 @@ export default function RoomsPage() {
             </article>
           ))}
         </div>
-        <aside className="panel" style={{ padding: 20, display: "grid", gap: 14, alignContent: "start" }}>
+        <aside className="panel" style={{ padding: 20, display: "grid", gap: 14, alignContent: "start", alignSelf: "start" }}>
           <h2 style={{ margin: 0, fontSize: 22 }}>방 코드 입장</h2>
           <input
             value={roomCode}

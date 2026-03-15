@@ -3,7 +3,7 @@
 import type { GameMode, RoomPlayer, RoomState } from "@mundo/shared";
 import { MAX_ROOM_NAME_LENGTH, MAX_ROOM_PASSWORD_LENGTH, MIN_ROOM_PASSWORD_LENGTH } from "@mundo/shared";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { getSocket } from "../../../lib/socket/client";
 import { clearCurrentRoomId, getCurrentRoomId } from "../../../lib/room/currentRoom";
 import { getGuestSession } from "../../../lib/session/guestSession";
@@ -226,6 +226,7 @@ export default function RoomPage() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const chatScrollRef = useRef<HTMLDivElement | null>(null);
   const [settingsDraft, setSettingsDraft] = useState<RoomSettingsDraft>({
     name: "",
     mode: "2v2",
@@ -296,6 +297,16 @@ export default function RoomPage() {
       router.push(`/game/${roomState.room.roomId}`);
     }
   }, [roomState, router]);
+
+  useEffect(() => {
+    const node = chatScrollRef.current;
+
+    if (!node) {
+      return;
+    }
+
+    node.scrollTop = node.scrollHeight;
+  }, [chatEntries]);
 
   const socketId = getSocket().id;
   const me = useMemo(() => {
@@ -432,7 +443,10 @@ export default function RoomPage() {
           </section>
           <aside className="panel" style={{ padding: 18, display: "grid", gap: 14 }}>
             <h2 style={{ margin: 0, fontSize: 22 }}>채팅</h2>
-            <div style={{ minHeight: 220, maxHeight: 300, overflowY: "auto", color: "var(--muted)", lineHeight: 1.7, display: "grid", gap: 8 }}>
+            <div
+              ref={chatScrollRef}
+              style={{ minHeight: 220, maxHeight: 300, overflowY: "auto", color: "var(--muted)", lineHeight: 1.7, display: "grid", gap: 8 }}
+            >
               {chatEntries.length === 0 ? <span>아직 메시지가 없습니다.</span> : null}
               {chatEntries.map((entry) => (
                 <div key={entry.id} style={{ color: entry.tone === "system" ? "var(--muted)" : "var(--text)" }}>
