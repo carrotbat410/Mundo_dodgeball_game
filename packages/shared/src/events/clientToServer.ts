@@ -25,4 +25,5 @@ export interface ClientToServerEvents {
   "room:update-settings": (payload: RoomSettingsPayload) => void;
   "game:get-state": (payload: { roomId: string }) => void;
   "game:move": (payload: { targetX: number; targetY: number }) => void;
+  "game:cast-q": (payload: { targetX: number; targetY: number }) => void;
 }

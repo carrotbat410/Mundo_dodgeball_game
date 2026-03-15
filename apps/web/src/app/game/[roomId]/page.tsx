@@ -1,12 +1,33 @@
 "use client";
 
-import type { GameStateSnapshot, RoomState } from "@mundo/shared";
+import type { GameStateSnapshot, RoomPlayer, RoomState } from "@mundo/shared";
 import type { RoomGameController } from "../../../lib/phaser/createGame";
+import { Q_COOLDOWN_SEC } from "@mundo/shared";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getCurrentRoomId } from "../../../lib/room/currentRoom";
 import { getSocket } from "../../../lib/socket/client";
 import { getGuestSession } from "../../../lib/session/guestSession";
+
+function getResultLabel(
+  result: GameStateSnapshot["result"],
+  myTeam: RoomPlayer["team"] | null
+) {
+  if (!result) {
+    return null;
+  }
+
+  if (result === "draw") {
+    return "무승부";
+  }
+
+  if (!myTeam) {
+    return result === "blue_win" ? "블루팀 승리" : "레드팀 승리";
+  }
+
+  const myWin = (result === "blue_win" && myTeam === "blue") || (result === "red_win" && myTeam === "red");
+  return myWin ? "승리" : "패배";
+}
 
 export default function GamePage() {
   const params = useParams<{ roomId: string }>();
@@ -78,9 +99,15 @@ export default function GamePage() {
         return;
       }
 
-      gameRef.current = createRoomGame(containerRef.current, (targetX, targetY) => {
-        getSocket().emit("game:move", { targetX, targetY });
-      });
+      gameRef.current = createRoomGame(
+        containerRef.current,
+        (targetX, targetY) => {
+          getSocket().emit("game:move", { targetX, targetY });
+        },
+        (targetX, targetY) => {
+          getSocket().emit("game:cast-q", { targetX, targetY });
+        }
+      );
 
       if (gameState) {
         gameRef.current.updateSnapshot(gameState);
@@ -102,16 +129,21 @@ export default function GamePage() {
     gameRef.current.updateSnapshot(gameState);
   }, [gameState]);
 
-  const playerSummary = useMemo(() => {
-    if (!gameState) {
-      return [];
+  const socketId = getSocket().id;
+  const meRoomPlayer = useMemo(() => {
+    return roomState?.players.find((player) => player.socketId === socketId) ?? null;
+  }, [roomState, socketId]);
+
+  const meGamePlayer = useMemo(() => {
+    if (!gameState || !meRoomPlayer) {
+      return null;
     }
 
-    return gameState.players.map((player) => {
-      const teamLabel = player.team === "blue" ? "블루팀" : "레드팀";
-      return `${player.nickname} · ${teamLabel} · HP ${player.hp}`;
-    });
-  }, [gameState]);
+    return gameState.players.find((player) => player.playerId === meRoomPlayer.playerId) ?? null;
+  }, [gameState, meRoomPlayer]);
+
+  const qProgress = meGamePlayer ? Math.max(0, Math.min(1, 1 - meGamePlayer.qCooldownRemaining / Q_COOLDOWN_SEC)) : 0;
+  const resultLabel = getResultLabel(gameState?.result ?? null, meRoomPlayer?.team ?? null);
 
   return (
     <main className="page-shell">
@@ -122,14 +154,36 @@ export default function GamePage() {
           padding: 24,
           display: "grid",
           gap: 20,
-          alignContent: "start"
+          alignContent: "start",
+          position: "relative"
         }}
       >
+        {gameState?.status === "finished" && resultLabel ? (
+          <div
+            style={{
+              position: "absolute",
+              inset: 24,
+              display: "grid",
+              placeItems: "center",
+              background: "rgba(4, 7, 14, 0.56)",
+              borderRadius: 24,
+              zIndex: 10
+            }}
+          >
+            <div style={{ textAlign: "center", display: "grid", gap: 10 }}>
+              <strong style={{ fontSize: 48, color: "var(--text)" }}>{resultLabel}</strong>
+              <span style={{ color: "var(--muted)", fontSize: 18 }}>
+                {gameState.resultDelayRemaining.toFixed(1)}초 후 로비로 돌아갑니다.
+              </span>
+            </div>
+          </div>
+        ) : null}
+
         <div style={{ display: "grid", gap: 8 }}>
           <p style={{ margin: 0, color: "var(--accent)", fontWeight: 700 }}>Game Scene</p>
-          <h1 style={{ margin: 0, fontSize: 36 }}>카운트다운 + 이동 프리뷰 연결</h1>
+          <h1 style={{ margin: 0, fontSize: 36 }}>문도피구 전장</h1>
           <p style={{ margin: 0, color: error ? "#ff9388" : "var(--muted)", lineHeight: 1.6 }}>
-            {error || "우클릭 이동 입력이 서버 권위 상태로 전장에 반영됩니다. 다음 단계는 Q 발사와 충돌입니다."}
+            {error || "우클릭으로 이동하고, Q를 누르면 현재 마우스 방향으로 식칼을 던집니다."}
           </p>
         </div>
 
@@ -139,7 +193,8 @@ export default function GamePage() {
             style={{
               minHeight: 520,
               padding: 16,
-              background: "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02))"
+              background: "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02))",
+              position: "relative"
             }}
           >
             <div
@@ -154,6 +209,37 @@ export default function GamePage() {
                 background: "rgba(7,17,27,0.9)"
               }}
             />
+            <div
+              style={{
+                position: "absolute",
+                left: "50%",
+                bottom: 28,
+                transform: "translateX(-50%)",
+                width: 280,
+                padding: "14px 18px",
+                borderRadius: 18,
+                background: "rgba(4, 7, 14, 0.82)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                display: "grid",
+                gap: 10
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <strong>Q 식칼</strong>
+                <span style={{ color: meGamePlayer?.qCooldownRemaining ? "var(--muted)" : "var(--accent)", fontWeight: 700 }}>
+                  {meGamePlayer ? (meGamePlayer.qCooldownRemaining > 0 ? `${meGamePlayer.qCooldownRemaining.toFixed(1)}초` : "READY") : "-"}
+                </span>
+              </div>
+              <div style={{ height: 10, borderRadius: 999, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+                <div
+                  style={{
+                    width: `${qProgress * 100}%`,
+                    height: "100%",
+                    background: meGamePlayer?.qCooldownRemaining ? "linear-gradient(90deg, #6f7f96, #b8c7da)" : "linear-gradient(90deg, #b9ff66, #dbff8b)"
+                  }}
+                />
+              </div>
+            </div>
           </div>
 
           <aside className="panel" style={{ padding: 20, display: "grid", gap: 14, alignContent: "start" }}>
@@ -165,29 +251,15 @@ export default function GamePage() {
               <span>게임 상태: {gameState?.status ?? "불러오는 중"}</span>
               <span>카운트다운: {gameState ? gameState.countdownRemaining.toFixed(1) : "-"}</span>
               <span>남은 시간: {gameState ? gameState.remainingTime.toFixed(1) : "-"}</span>
+              <span>투사체 수: {gameState?.projectiles.length ?? 0}</span>
             </div>
             <h2 style={{ margin: "8px 0 0", fontSize: 22 }}>참가자</h2>
-            {playerSummary.length === 0 ? <p style={{ margin: 0, color: "var(--muted)" }}>참가자 정보를 불러오는 중입니다.</p> : null}
-            {playerSummary.map((entry) => (
-              <div key={entry} style={{ padding: "12px 14px", borderRadius: 14, background: "rgba(255,255,255,0.04)", color: "var(--text)" }}>
-                {entry}
+            {(gameState?.players ?? []).length === 0 ? <p style={{ margin: 0, color: "var(--muted)" }}>참가자 정보를 불러오는 중입니다.</p> : null}
+            {(gameState?.players ?? []).map((player) => (
+              <div key={player.playerId} style={{ padding: "12px 14px", borderRadius: 14, background: "rgba(255,255,255,0.04)", color: "var(--text)", opacity: player.alive ? 1 : 0.55 }}>
+                {player.nickname} · {player.team === "blue" ? "블루팀" : "레드팀"} · HP {player.hp} · {player.alive ? "생존" : "탈락"}
               </div>
             ))}
-            <button
-              type="button"
-              onClick={() => router.push(`/room/${roomId}`)}
-              style={{
-                marginTop: 8,
-                padding: "12px 16px",
-                borderRadius: 14,
-                border: 0,
-                background: "rgba(255,255,255,0.12)",
-                color: "var(--text)",
-                cursor: "pointer"
-              }}
-            >
-              로비로 돌아가기
-            </button>
           </aside>
         </div>
       </section>

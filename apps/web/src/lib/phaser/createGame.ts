@@ -11,7 +11,8 @@ export interface RoomGameController {
 
 export function createRoomGame(
   container: HTMLDivElement,
-  onMoveCommand: (targetX: number, targetY: number) => void
+  onMoveCommand: (targetX: number, targetY: number) => void,
+  onCastCommand: (targetX: number, targetY: number) => void
 ): RoomGameController {
   const scene = new RoomGameScene();
   const game = new Phaser.Game({
@@ -32,6 +33,7 @@ export function createRoomGame(
   });
 
   scene.setMoveHandler(onMoveCommand);
+  scene.setCastHandler(onCastCommand);
 
   return {
     game,

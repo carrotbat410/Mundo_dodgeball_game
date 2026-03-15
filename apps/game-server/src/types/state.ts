@@ -1,5 +1,6 @@
 import type {
   GameMode,
+  GameResult,
   GameStatus,
   RoomPlayer,
   RoomStatus,
@@ -42,8 +43,24 @@ export interface GamePlayer {
   y: number;
   hp: number;
   alive: boolean;
+  qCooldownRemaining: number;
   moveTargetX: number | null;
   moveTargetY: number | null;
+}
+
+export interface Projectile {
+  id: string;
+  ownerPlayerId: string;
+  team: Team;
+  x: number;
+  y: number;
+  prevX: number;
+  prevY: number;
+  dirX: number;
+  dirY: number;
+  speed: number;
+  radius: number;
+  remainingLifetime: number;
 }
 
 export interface Game {
@@ -53,6 +70,9 @@ export interface Game {
   countdownRemaining: number;
   remainingTime: number;
   players: GamePlayer[];
+  projectiles: Projectile[];
+  result: GameResult | null;
+  resultDelayRemaining: number;
 }
 
 export interface ServerState {

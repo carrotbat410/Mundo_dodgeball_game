@@ -51,6 +51,7 @@
 - `Q` 쿨타임: 4초
 - 경기 시간: 180초
 - 시작 카운트다운: 3초
+- 결과 화면 유지 시간: 3초
 - 기준 맵 좌표계: `1600 x 900`
 - 맵 중심: `(800, 450)`
 - 맵 반지름: `300`
@@ -76,7 +77,7 @@
 
 - 이동 판정: 서버 권위
 - 투사체 생성/충돌 판정: 서버 권위
-- 클라이언트는 입력 전송 + 화면 보간
+- 클라이언트는 입력 전송 + 화면 반영
 - 플레이어끼리 몸 충돌 없음
 - 아군 오사 없음
 - 피격 시 경직 없음
@@ -106,6 +107,7 @@
 - 게임중 방은 입장 불가
 - 방 코드 입장 가능
 - 비밀번호 방은 비밀번호 입력 후 입장
+- 카드 높이는 1~2줄 정보 중심으로 컴팩트하게 조정됨
 
 ### 방 내부 로비
 
@@ -113,23 +115,20 @@
 - 입장 시 자동 팀 배치
 - 이후 사용자가 팀 bar 클릭으로 자유 이동
 - 방장도 팀 이동 가능
-- 팀 이동 UX:
-  - 블루팀 bar 클릭 시 블루팀 이동 시도
-  - 레드팀 bar 클릭 시 레드팀 이동 시도
 - 방장만 시작 가능
 - 방장 제외 전원 준비 완료 + 정원 충족 시 시작 가능
 - 방장만 강퇴 가능
 - 강퇴는 로비에서만 가능
-- 관전 입장 기능 없음
 - 로비 채팅 있음
+- 채팅은 새 메시지가 들어오면 자동으로 맨 아래로 스크롤
 - 방장만 방 설정 변경 가능
 
 ### 게임 화면 HUD 규칙
 
-- 모든 플레이어 머리 위에 `이름 + 체력바`
-- 체력바는 4칸 segmented 형식이 맞는 방향
+- 모든 플레이어 머리 위에 `이름 + segmented 체력바`
 - 하단 중앙에 `Q` 쿨타임 숫자 + 게이지
 - 적 체력도 공개
+- 결과 오버레이 표시 후 3초 뒤 로비 복귀
 
 ## 기술 스택 확정안
 
@@ -139,9 +138,6 @@
 - 통신: `Socket.IO`
 - 공통 타입/상수: `packages/shared`
 - 저장소: 초기 MVP는 `DB 없음`, 메모리 기반
-- 향후 확장:
-  - 멀티 서버/공유 상태 필요 시 `Redis`
-  - 로그인/전적/랭킹 필요 시 `MySQL/PostgreSQL`
 
 ## 현재 프로젝트 구조
 
@@ -153,9 +149,6 @@ Mundo_dodgeball_game/
   packages/
     shared/
   docs/
-  package.json
-  pnpm-workspace.yaml
-  tsconfig.base.json
 ```
 
 ### 주요 파일
@@ -163,24 +156,19 @@ Mundo_dodgeball_game/
 #### shared
 
 - `packages/shared/src/game/constants.ts`
-- `packages/shared/src/game/modes.ts`
-- `packages/shared/src/game/teams.ts`
 - `packages/shared/src/types/room.ts`
 - `packages/shared/src/types/session.ts`
 - `packages/shared/src/types/game.ts`
 - `packages/shared/src/events/clientToServer.ts`
 - `packages/shared/src/events/serverToClient.ts`
-- `packages/shared/src/index.ts`
 
 #### web
 
+- `apps/web/src/app/page.tsx`
 - `apps/web/src/app/guest/page.tsx`
 - `apps/web/src/app/rooms/page.tsx`
 - `apps/web/src/app/room/[roomId]/page.tsx`
 - `apps/web/src/app/game/[roomId]/page.tsx`
-- `apps/web/src/lib/socket/client.ts`
-- `apps/web/src/lib/session/guestSession.ts`
-- `apps/web/src/lib/room/currentRoom.ts`
 - `apps/web/src/lib/phaser/createGame.ts`
 - `apps/web/src/lib/phaser/scenes/RoomGameScene.ts`
 
@@ -226,14 +214,29 @@ Mundo_dodgeball_game/
 - 서버 game loop 추가 (`50ms` tick)
 - countdown -> playing 전환
 - game page에서 `game:get-state`, `game:state` 구독
-- Phaser 전장에 참가자 위치/이름/체력 마커 렌더링
+- Phaser 전장에 참가자 위치/이름/체력 프리뷰 렌더링
 - 우클릭 이동 입력을 Phaser에서 받아 `game:move`로 전송
 - 서버 권위 이동 반영
 - 반원 맵 제한 클램프 적용
 
+### 스프린트 3 완료
+
+- `game:cast-q` 이벤트 추가
+- 플레이어별 `Q` 쿨타임 서버 관리
+- 투사체 생성 / 직선 이동 / TTL / 벽 소멸 구현
+- 적 플레이어 충돌 판정 구현
+- HP 감소 및 사망 처리 구현
+- 사망 시 반투명 상태 유지 구현
+- 팀 전멸 시 승패 판정 구현
+- 3분 초과 시 무승부 구현
+- 결과 3초 후 로비 복귀 구현
+- Phaser 씬에서 투사체 렌더링
+- Phaser 씬에서 `Q` 키 입력 연결
+- 게임 페이지에 Q HUD 및 결과 오버레이 표시
+
 ## 현재 동작하는 수준
 
-현재는 **스프린트 2 완료 상태**입니다.
+현재는 **스프린트 3 완료 상태**입니다.
 
 가능한 것:
 - 게스트 입장
@@ -245,22 +248,20 @@ Mundo_dodgeball_game/
 - `/game/[roomId]` 이동
 - Phaser 전장 렌더링
 - countdown 표시
-- 참가자 마커 표시
-- 우클릭 이동 입력
-- 서버 권위 위치 갱신
+- 우클릭 이동
+- `Q` 발사
+- 투사체 이동 및 명중
+- 체력 감소 및 탈락 처리
+- 승패 / 무승부 / 결과 후 로비 복귀
 
 아직 안 된 것:
-- `Q` 발사
-- 투사체
-- 충돌 / 체력 감소
-- 사망 처리
-- 승패 / 무승부 / 결과 3초 후 복귀
-- 쿨타임 HUD
-- 이름 + 체력바를 실제 플레이 HUD 스타일로 완성
+- 피격 이펙트 / 발사 이펙트 고도화
+- 식칼 도트 아트 / 캐릭터 도트 아트
+- 사운드
+- 정교한 보간 / 네트워크 튜닝
+- 다국어 문자열 정리
 
 ## 소켓 이벤트 현황
-
-### 현재 구현된 주요 이벤트
 
 클라이언트 → 서버
 - `guest:enter`
@@ -279,6 +280,7 @@ Mundo_dodgeball_game/
 - `room:update-settings`
 - `game:get-state`
 - `game:move`
+- `game:cast-q`
 
 서버 → 클라이언트
 - `guest:entered`
@@ -310,40 +312,30 @@ Mundo_dodgeball_game/
 ### Game 개념
 
 - 방과 분리된 경기 단위 상태
-- 플레이어 좌표, HP, alive 상태, moveTarget 유지
-- countdown 및 remainingTime 유지
+- 플레이어 좌표, HP, alive 상태, `qCooldownRemaining`, `moveTarget` 유지
+- 투사체 배열 유지
+- countdown / playing / finished 상태 유지
 - 서버 loop에서 매 tick 계산
 
 ## 바로 이어서 해야 할 작업
 
-### 최우선 작업: 스프린트 3
+### 후속 우선순위
 
-1. `Q` 발사 구현
-- `game:cast-q` 이벤트 추가
-- Q 쿨타임 4초 관리
-- 현재 마우스 방향 기준 투사체 생성
+1. 비주얼 polish
+- 피격 이펙트
+- 발사 이펙트
+- 결과 연출 강화
+- HUD 정리
 
-2. 투사체 / 충돌 / 체력
-- 식칼 직선 이동
-- 벽 닿으면 소멸
-- 플레이어 충돌 판정
-- 체력 4칸 감소
+2. 아트 반영
+- 문도풍 캐릭터 도트
+- 식칼 도트
+- 맵 장식
 
-3. 사망 / 승패 / 로비 복귀
-- 사망 시 반투명 + 관전 유지
-- 팀 전멸 시 승패
-- 시간 초과 무승부
-- 결과 3초 후 로비 복귀
-
-### 후속 작업
-
-4. HUD 마감
-- 이름 + 체력바를 실제 게임 HUD 형태로 정리
-- 하단 중앙 Q 쿨타임 게이지 추가
-- countdown 및 상태 텍스트를 UI 레이어로 정리
-
-5. 다국어 문구 정리
-- 현재 페이지 내 하드코딩 문구 일부를 `ko/en` 메시지 구조로 이동
+3. 네트워크 / UX 정리
+- 이동 보간 고도화
+- system error를 toast 식으로 정리
+- 다국어 문자열 분리
 
 ## 알고 있어야 하는 기술 포인트
 
@@ -355,8 +347,9 @@ Mundo_dodgeball_game/
 - 팀 배치
 - 준비 상태
 - 방장
-- 시작 가능 여부
 - 경기 좌표와 countdown 상태
+- 투사체
+- 체력 / 사망 / 결과
 
 ### 2. `room:state`, `game:state` 분리
 
@@ -373,31 +366,15 @@ Mundo_dodgeball_game/
 
 세 책임을 섞지 않는 것이 중요함.
 
-### 4. room id와 room code 분리
-
-- `roomId`: 내부 식별자
-- `roomCode`: 사용자 입력용 짧은 코드
-
-### 5. 소켓 싱글턴 유지
+### 4. 소켓 싱글턴 유지
 
 `apps/web/src/lib/socket/client.ts`는 싱글턴으로 유지해야 함.
 페이지마다 소켓을 새로 만들면 상태가 쉽게 꼬임.
 
-### 6. 리스너 cleanup 중요
-
-React 페이지에서 `socket.on()`을 쓸 때는 반드시 cleanup 필요.
-중복 리스너 등록이 가장 흔한 버그 포인트 중 하나임.
-
-### 7. UTF-8 유지
+### 5. UTF-8 유지
 
 - 한글 문구가 많음
 - 파일 저장 시 UTF-8 유지 필수
-
-### 8. 기존 사이트와의 관계
-
-- 이 repo는 기존 `lol_team_balance_tool_front2`와 분리된 새 게임 repo임
-- 기존 사이트에서는 탭이나 링크로 이 게임에 접근시키는 방향
-- `iframe`보다 링크/이동 방식이 더 적합하다고 정리됨
 
 ## 실행 방법
 
@@ -431,15 +408,16 @@ pnpm dev:game-server
 - 방 생성 / 입장 / 코드 입장 / 비밀번호 방 테스트
 - 로비에서 팀 이동 / 준비 / 강퇴 / 방 설정 변경 테스트
 - 방장이 시작 누르면 `/game/[roomId]`로 이동
-- 게임 페이지에서 카운트다운이 진행되고 우클릭 이동이 반영되는지 확인
+- 카운트다운 후 우클릭 이동 테스트
+- `Q` 발사 / 체력 감소 / 탈락 / 결과 후 로비 복귀 테스트
 
 ## 다음 코덱스 스레드에 바로 요청하기 좋은 문장 예시
 
-- `docs/context-handoff.md를 읽고 스프린트 3인 Q 발사, 투사체, 충돌, 체력 감소부터 구현해줘.`
-- `docs/context-handoff.md 기준으로 game:cast-q 이벤트와 서버 투사체 루프를 추가해줘.`
-- `docs/context-handoff.md를 읽고 현재 countdown + 이동 상태를 유지한 채 Q 쿨타임 HUD와 투사체 렌더링을 붙여줘.`
+- `docs/context-handoff.md를 읽고 전투는 유지한 채 피격/발사 이펙트와 HUD polish를 해줘.`
+- `docs/context-handoff.md를 기준으로 문도 도트 아트와 식칼 도트 아트를 반영해줘.`
+- `docs/context-handoff.md를 읽고 다국어 문자열을 정리하고 화면 문구를 i18n 구조로 분리해줘.`
 
 ## 참고
 
 - 현재 `pnpm typecheck`는 통과 상태여야 정상
-- 다음 작업 전에 `docs/context-handoff.md`를 먼저 읽고 이어서 작업하는 것이 가장 안전함
+- 스프린트 3까지는 구현 완료로 보면 됨

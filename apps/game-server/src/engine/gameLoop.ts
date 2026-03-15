@@ -17,7 +17,7 @@ export function startGameLoop(io: GameIo) {
     const deltaSec = (now - lastTick) / 1000;
     lastTick = now;
 
-    const transitionedRoomIds = advanceGames(deltaSec);
+    const { transitionedRoomIds, resetRoomIds } = advanceGames(deltaSec);
 
     for (const roomId of transitionedRoomIds) {
       const room = serverState.rooms.get(roomId);
@@ -29,7 +29,17 @@ export function startGameLoop(io: GameIo) {
       io.to(roomId).emit("room:state", toRoomState(room));
     }
 
-    if (transitionedRoomIds.length > 0) {
+    for (const roomId of resetRoomIds) {
+      const room = serverState.rooms.get(roomId);
+
+      if (!room) {
+        continue;
+      }
+
+      io.to(roomId).emit("room:state", toRoomState(room));
+    }
+
+    if (transitionedRoomIds.length > 0 || resetRoomIds.length > 0) {
       emitLobbyList(io);
     }
 
