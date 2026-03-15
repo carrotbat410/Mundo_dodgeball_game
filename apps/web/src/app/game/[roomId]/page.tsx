@@ -123,6 +123,15 @@ export default function GamePage() {
         },
         (targetX, targetY) => {
           getSocket().emit("game:cast-q", { targetX, targetY });
+        },
+        {
+          title: t(locale, "game.title"),
+          waiting: t(locale, "game.loading"),
+          countdownPrefix: t(locale, "game.countdown"),
+          countdownSuffix: t(locale, "game.secondsUnit"),
+          statusPrefix: t(locale, "game.gameStatus"),
+          remainingTimePrefix: t(locale, "game.remainingTime"),
+          controlsHint: t(locale, "game.controlsShort")
         }
       );
 

@@ -89,6 +89,8 @@
   "game.participants": "참가자",
   "game.loadingParticipants": "참가자 정보를 불러오는 중입니다.",
   "game.loading": "불러오는 중",
+  "game.secondsUnit": "초",
+  "game.controlsShort": "우클릭 이동 / Q 발사",
   "game.teamBlue": "블루팀",
   "game.teamRed": "레드팀",
   "game.alive": "생존",

@@ -3,6 +3,16 @@ import type { GameStateSnapshot } from "@mundo/shared";
 import { MAP_CENTER_X, MAP_CENTER_Y } from "@mundo/shared";
 import { RoomGameScene } from "./scenes/RoomGameScene";
 
+export interface RoomGameCopy {
+  title: string;
+  waiting: string;
+  countdownPrefix: string;
+  countdownSuffix: string;
+  statusPrefix: string;
+  remainingTimePrefix: string;
+  controlsHint: string;
+}
+
 export interface RoomGameController {
   game: Phaser.Game;
   updateSnapshot: (payload: GameStateSnapshot) => void;
@@ -12,9 +22,10 @@ export interface RoomGameController {
 export function createRoomGame(
   container: HTMLDivElement,
   onMoveCommand: (targetX: number, targetY: number) => void,
-  onCastCommand: (targetX: number, targetY: number) => void
+  onCastCommand: (targetX: number, targetY: number) => void,
+  copy: RoomGameCopy
 ): RoomGameController {
-  const scene = new RoomGameScene();
+  const scene = new RoomGameScene(copy);
   const game = new Phaser.Game({
     type: Phaser.AUTO,
     parent: container,

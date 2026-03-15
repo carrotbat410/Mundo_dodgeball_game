@@ -89,6 +89,8 @@
   "game.participants": "Players",
   "game.loadingParticipants": "Loading player information.",
   "game.loading": "Loading",
+  "game.secondsUnit": "s",
+  "game.controlsShort": "Right click / Q cast",
   "game.teamBlue": "Blue Team",
   "game.teamRed": "Red Team",
   "game.alive": "Alive",

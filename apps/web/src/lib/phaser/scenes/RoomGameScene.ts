@@ -8,6 +8,7 @@ import {
   type GamePlayerSnapshot,
   type GameStateSnapshot
 } from "@mundo/shared";
+import type { RoomGameCopy } from "../createGame";
 
 interface PlayerVisual {
   container: Phaser.GameObjects.Container;
@@ -24,9 +25,11 @@ export class RoomGameScene extends Phaser.Scene {
   private onMoveCommand: ((x: number, y: number) => void) | null = null;
   private onCastCommand: ((x: number, y: number) => void) | null = null;
   private isQHeld = false;
+  private readonly copy: RoomGameCopy;
 
-  constructor() {
+  constructor(copy: RoomGameCopy) {
     super("room-game-scene");
+    this.copy = copy;
   }
 
   setMoveHandler(handler: (x: number, y: number) => void) {
@@ -97,7 +100,7 @@ export class RoomGameScene extends Phaser.Scene {
     );
     graphics.fillPath();
 
-    const title = this.add.text(width / 2, 88, "문도피구 전장", {
+    const title = this.add.text(width / 2, 88, this.copy.title, {
       fontFamily: "Pretendard, Noto Sans KR, sans-serif",
       fontSize: "34px",
       color: "#f4f7fb"
@@ -111,7 +114,7 @@ export class RoomGameScene extends Phaser.Scene {
     });
     this.countdownText.setOrigin(0.5);
 
-    this.statusText = this.add.text(width / 2, height - 56, "게임 상태를 기다리는 중입니다.", {
+    this.statusText = this.add.text(width / 2, height - 56, this.copy.waiting, {
       fontFamily: "Pretendard, Noto Sans KR, sans-serif",
       fontSize: "14px",
       color: "#9fb2c8"
@@ -173,7 +176,7 @@ export class RoomGameScene extends Phaser.Scene {
     });
 
     if (snapshot.status === "countdown") {
-      this.countdownText.setText(`시작까지 ${Math.ceil(snapshot.countdownRemaining)}초`);
+      this.countdownText.setText(`${this.copy.countdownPrefix} ${Math.ceil(snapshot.countdownRemaining)}${this.copy.countdownSuffix}`);
     } else if (snapshot.status === "finished") {
       this.countdownText.setText("");
     } else {
@@ -181,7 +184,7 @@ export class RoomGameScene extends Phaser.Scene {
     }
 
     this.statusText.setText(
-      `상태 ${snapshot.status} · 남은 시간 ${snapshot.remainingTime.toFixed(1)}초 · 우클릭 이동 / Q 발사`
+      `${this.copy.statusPrefix} ${snapshot.status} · ${this.copy.remainingTimePrefix} ${snapshot.remainingTime.toFixed(1)}${this.copy.countdownSuffix} · ${this.copy.controlsHint}`
     );
   }
 
