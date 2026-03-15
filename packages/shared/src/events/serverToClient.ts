@@ -19,6 +19,10 @@ export interface ServerToClientEvents {
     type: string;
     message: string;
   }) => void;
+  "room:kicked": (payload: {
+    roomId: string;
+    message: string;
+  }) => void;
   "system:error": (payload: {
     code: string;
     message: string;

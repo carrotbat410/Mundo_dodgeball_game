@@ -14,16 +14,46 @@ interface ChatEntry {
   sender?: string;
 }
 
-function PlayerCard({ player, meId }: { player: RoomPlayer; meId: string | null }) {
+function PlayerCard({
+  player,
+  meId,
+  isHost,
+  onKick
+}: {
+  player: RoomPlayer;
+  meId: string | null;
+  isHost: boolean;
+  onKick: (playerId: string, nickname: string) => void;
+}) {
+  const isMe = player.playerId === meId;
+
   return (
-    <div className="panel" style={{ padding: 18, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+    <div className="panel" style={{ padding: 18, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
       <div>
         <strong>{player.nickname}</strong>
         <p style={{ margin: "6px 0 0", color: "var(--muted)" }}>
           {player.isHost ? "방장" : "참가자"} · {player.isReady ? "준비 완료" : "준비 전"}
         </p>
       </div>
-      {player.playerId === meId ? <span style={{ color: "var(--accent)" }}>나</span> : null}
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        {isMe ? <span style={{ color: "var(--accent)" }}>나</span> : null}
+        {isHost && !isMe ? (
+          <button
+            type="button"
+            onClick={() => onKick(player.playerId, player.nickname)}
+            style={{
+              padding: "8px 12px",
+              borderRadius: 12,
+              border: 0,
+              background: "rgba(255,109,94,0.16)",
+              color: "#ffd8d3",
+              cursor: "pointer"
+            }}
+          >
+            강퇴
+          </button>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -61,6 +91,12 @@ export default function RoomPage() {
       setChatEntries((current) => [...current, { id: `${payload.senderPlayerId}-${payload.sentAt}`, tone: "user", text: payload.message, sender: payload.nickname }]);
     };
 
+    const handleKicked = (payload: { message: string }) => {
+      clearCurrentRoomId();
+      window.alert(payload.message);
+      router.replace("/rooms");
+    };
+
     const handleError = (payload: { message: string }) => {
       setError(payload.message);
     };
@@ -69,6 +105,7 @@ export default function RoomPage() {
     socket.on("room:joined", handleRoomState);
     socket.on("room:system-message", handleSystemMessage);
     socket.on("room:chat-message", handleChatMessage);
+    socket.on("room:kicked", handleKicked);
     socket.on("system:error", handleError);
     socket.emit("room:get-state", { roomId });
 
@@ -77,6 +114,7 @@ export default function RoomPage() {
       socket.off("room:joined", handleRoomState);
       socket.off("room:system-message", handleSystemMessage);
       socket.off("room:chat-message", handleChatMessage);
+      socket.off("room:kicked", handleKicked);
       socket.off("system:error", handleError);
     };
   }, [roomId, router]);
@@ -111,6 +149,16 @@ export default function RoomPage() {
     getSocket().emit("room:leave");
     clearCurrentRoomId();
     router.push("/rooms");
+  };
+
+  const handleKick = (targetPlayerId: string, nickname: string) => {
+    const shouldKick = window.confirm(`${nickname}님을 정말 강퇴할까요?`);
+
+    if (!shouldKick) {
+      return;
+    }
+
+    getSocket().emit("room:kick-player", { targetPlayerId });
   };
 
   const handleSendChat = () => {
@@ -159,14 +207,14 @@ export default function RoomPage() {
               <p style={{ margin: "10px 0 0", color: "var(--muted)" }}>이 바를 클릭하면 블루팀으로 이동합니다.</p>
             </button>
             {bluePlayers.map((player) => (
-              <PlayerCard key={player.playerId} player={player} meId={me?.playerId ?? null} />
+              <PlayerCard key={player.playerId} player={player} meId={me?.playerId ?? null} isHost={Boolean(me?.isHost)} onKick={handleKick} />
             ))}
             <button type="button" className="panel" onClick={() => handleTeamChange("red")} style={{ padding: 16, background: "rgba(255,109,94,0.12)", border: 0, color: "var(--text)", textAlign: "left", cursor: "pointer" }}>
               <strong>레드팀 ({redPlayers.length}명)</strong>
               <p style={{ margin: "10px 0 0", color: "var(--muted)" }}>이 바를 클릭하면 레드팀으로 이동합니다.</p>
             </button>
             {redPlayers.map((player) => (
-              <PlayerCard key={player.playerId} player={player} meId={me?.playerId ?? null} />
+              <PlayerCard key={player.playerId} player={player} meId={me?.playerId ?? null} isHost={Boolean(me?.isHost)} onKick={handleKick} />
             ))}
           </section>
           <aside className="panel" style={{ padding: 18, display: "grid", gap: 14 }}>

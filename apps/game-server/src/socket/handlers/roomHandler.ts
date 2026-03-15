@@ -6,9 +6,11 @@ import {
   canStartRoom,
   changePlayerTeam,
   createRoom,
+  getPlayerById,
   getPlayerBySocket,
   joinRoom,
   removePlayerFromRoom,
+  removePlayerFromRoomById,
   setReadyState,
   toRoomState
 } from "../../services/roomService";
@@ -245,6 +247,58 @@ export function registerRoomHandler(io: GameIo, socket: GameSocket) {
 
   socket.on("room:leave", () => {
     handleRoomDisconnect(io, socket.id);
+  });
+
+  socket.on("room:kick-player", ({ targetPlayerId }) => {
+    const session = serverState.sessions.get(socket.id);
+    const room = session?.currentRoomId ? serverState.rooms.get(session.currentRoomId) : null;
+
+    if (!room) {
+      emitError(socket, "ROOM_NOT_FOUND", "방을 찾을 수 없습니다.");
+      return;
+    }
+
+    const host = getPlayerBySocket(room, socket.id);
+
+    if (!host?.isHost) {
+      emitError(socket, "NOT_HOST", "방장만 강퇴할 수 있습니다.");
+      return;
+    }
+
+    const targetPlayer = getPlayerById(room, targetPlayerId);
+
+    if (!targetPlayer) {
+      emitError(socket, "PLAYER_NOT_FOUND", "강퇴 대상을 찾을 수 없습니다.");
+      return;
+    }
+
+    if (targetPlayer.playerId === host.playerId) {
+      emitError(socket, "CANNOT_KICK_HOST", "방장은 자기 자신을 강퇴할 수 없습니다.");
+      return;
+    }
+
+    const targetSession = serverState.sessions.get(targetPlayer.socketId);
+    const removedPlayer = removePlayerFromRoomById(room, targetPlayerId);
+
+    if (!removedPlayer) {
+      emitError(socket, "PLAYER_NOT_FOUND", "강퇴 대상을 찾을 수 없습니다.");
+      return;
+    }
+
+    if (targetSession) {
+      targetSession.currentRoomId = null;
+    }
+
+    io.to(targetPlayer.socketId).emit("room:kicked", {
+      roomId: room.id,
+      message: "방장에 의해 강퇴되었습니다."
+    });
+    io.to(room.id).emit("room:system-message", {
+      type: "player_kicked",
+      message: `${removedPlayer.nickname}님이 방에서 강퇴되었습니다.`
+    });
+    emitRoomState(io, room.id);
+    emitLobbyList(io);
   });
 
   socket.on("room:start-game", () => {

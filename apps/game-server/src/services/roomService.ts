@@ -133,6 +133,10 @@ export function getPlayerBySocket(room: Room, socketId: string) {
   return room.players.find((player) => player.socketId === socketId) ?? null;
 }
 
+export function getPlayerById(room: Room, playerId: string) {
+  return room.players.find((player) => player.playerId === playerId) ?? null;
+}
+
 export function changePlayerTeam(room: Room, socketId: string, team: Team) {
   const player = getPlayerBySocket(room, socketId);
 
@@ -172,6 +176,23 @@ export function setReadyState(room: Room, socketId: string, isReady: boolean) {
   return player;
 }
 
+function assignNextHost(room: Room, removedPlayerId: string) {
+  if (removedPlayerId !== room.hostPlayerId || room.players.length === 0) {
+    return;
+  }
+
+  const nextHost = [...room.players].sort((a, b) => a.joinedAt - b.joinedAt)[0];
+  nextHost.isHost = true;
+  room.hostPlayerId = nextHost.playerId;
+}
+
+function cleanupEmptyRoom(room: Room) {
+  if (room.players.length === 0) {
+    serverState.rooms.delete(room.id);
+    serverState.roomCodeIndex.delete(room.code);
+  }
+}
+
 export function removePlayerFromRoom(room: Room, socketId: string) {
   const index = room.players.findIndex((player) => player.socketId === socketId);
 
@@ -182,17 +203,24 @@ export function removePlayerFromRoom(room: Room, socketId: string) {
   const [removedPlayer] = room.players.splice(index, 1);
   room.updatedAt = Date.now();
 
-  if (removedPlayer.playerId === room.hostPlayerId && room.players.length > 0) {
-    const nextHost = [...room.players].sort((a, b) => a.joinedAt - b.joinedAt)[0];
+  assignNextHost(room, removedPlayer.playerId);
+  cleanupEmptyRoom(room);
 
-    nextHost.isHost = true;
-    room.hostPlayerId = nextHost.playerId;
+  return removedPlayer;
+}
+
+export function removePlayerFromRoomById(room: Room, playerId: string) {
+  const index = room.players.findIndex((player) => player.playerId === playerId);
+
+  if (index === -1) {
+    return null;
   }
 
-  if (room.players.length === 0) {
-    serverState.rooms.delete(room.id);
-    serverState.roomCodeIndex.delete(room.code);
-  }
+  const [removedPlayer] = room.players.splice(index, 1);
+  room.updatedAt = Date.now();
+
+  assignNextHost(room, removedPlayer.playerId);
+  cleanupEmptyRoom(room);
 
   return removedPlayer;
 }

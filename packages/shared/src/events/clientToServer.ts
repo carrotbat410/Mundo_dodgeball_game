@@ -18,4 +18,5 @@ export interface ClientToServerEvents {
   "room:chat": (payload: { message: string }) => void;
   "room:leave": () => void;
   "room:start-game": () => void;
+  "room:kick-player": (payload: { targetPlayerId: string }) => void;
 }
