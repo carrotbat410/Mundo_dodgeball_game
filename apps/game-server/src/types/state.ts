@@ -1,4 +1,11 @@
-import type { Session, RoomPlayer, GameMode, RoomStatus } from "@mundo/shared";
+import type {
+  GameMode,
+  GameStatus,
+  RoomPlayer,
+  RoomStatus,
+  Session,
+  Team
+} from "@mundo/shared";
 
 export interface RoomChatMessage {
   id: string;
@@ -25,8 +32,32 @@ export interface Room {
   updatedAt: number;
 }
 
+export interface GamePlayer {
+  playerId: string;
+  guestId: string;
+  socketId: string;
+  nickname: string;
+  team: Team;
+  x: number;
+  y: number;
+  hp: number;
+  alive: boolean;
+  moveTargetX: number | null;
+  moveTargetY: number | null;
+}
+
+export interface Game {
+  roomId: string;
+  mode: GameMode;
+  status: GameStatus;
+  countdownRemaining: number;
+  remainingTime: number;
+  players: GamePlayer[];
+}
+
 export interface ServerState {
   sessions: Map<string, Session>;
   rooms: Map<string, Room>;
   roomCodeIndex: Map<string, string>;
+  games: Map<string, Game>;
 }

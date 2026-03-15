@@ -122,6 +122,7 @@
 - 강퇴는 로비에서만 가능
 - 관전 입장 기능 없음
 - 로비 채팅 있음
+- 방장만 방 설정 변경 가능
 
 ### 게임 화면 HUD 규칙
 
@@ -133,7 +134,7 @@
 ## 기술 스택 확정안
 
 - 웹/UI: `Next.js + TypeScript`
-- 게임 렌더링: `Phaser` 예정
+- 게임 렌더링: `Phaser`
 - 실시간 서버: `Node.js + TypeScript`
 - 통신: `Socket.IO`
 - 공통 타입/상수: `packages/shared`
@@ -159,14 +160,6 @@ Mundo_dodgeball_game/
 
 ### 주요 파일
 
-#### 루트
-
-- `package.json`
-- `pnpm-workspace.yaml`
-- `tsconfig.base.json`
-- `.env.example`
-- `README.md`
-
 #### shared
 
 - `packages/shared/src/game/constants.ts`
@@ -174,14 +167,13 @@ Mundo_dodgeball_game/
 - `packages/shared/src/game/teams.ts`
 - `packages/shared/src/types/room.ts`
 - `packages/shared/src/types/session.ts`
+- `packages/shared/src/types/game.ts`
 - `packages/shared/src/events/clientToServer.ts`
 - `packages/shared/src/events/serverToClient.ts`
 - `packages/shared/src/index.ts`
 
 #### web
 
-- `apps/web/src/app/layout.tsx`
-- `apps/web/src/app/globals.css`
 - `apps/web/src/app/guest/page.tsx`
 - `apps/web/src/app/rooms/page.tsx`
 - `apps/web/src/app/room/[roomId]/page.tsx`
@@ -189,102 +181,82 @@ Mundo_dodgeball_game/
 - `apps/web/src/lib/socket/client.ts`
 - `apps/web/src/lib/session/guestSession.ts`
 - `apps/web/src/lib/room/currentRoom.ts`
-- `apps/web/src/messages/ko.json`
-- `apps/web/src/messages/en.json`
+- `apps/web/src/lib/phaser/createGame.ts`
+- `apps/web/src/lib/phaser/scenes/RoomGameScene.ts`
 
 #### game-server
 
-- `apps/game-server/src/index.ts`
 - `apps/game-server/src/server.ts`
-- `apps/game-server/src/config/env.ts`
 - `apps/game-server/src/state/serverState.ts`
 - `apps/game-server/src/types/state.ts`
-- `apps/game-server/src/services/ids.ts`
 - `apps/game-server/src/services/roomService.ts`
+- `apps/game-server/src/services/gameService.ts`
 - `apps/game-server/src/socket/registerSocketHandlers.ts`
-- `apps/game-server/src/socket/handlers/guestHandler.ts`
 - `apps/game-server/src/socket/handlers/lobbyHandler.ts`
 - `apps/game-server/src/socket/handlers/roomHandler.ts`
+- `apps/game-server/src/socket/handlers/gameHandler.ts`
+- `apps/game-server/src/engine/gameLoop.ts`
 
 ## 지금까지 완료한 작업
 
-### 1. 모노레포 기본 세팅 완료
+### 스프린트 1 완료
 
-- `apps/web`, `apps/game-server`, `packages/shared`, `docs` 구성 생성
-- `pnpm` workspace 구성 완료
-- `TypeScript` 공통 설정 추가
-
-### 2. 공통 타입 / 이벤트 / 상수 추가
-
-- 게임 모드 타입
-- 팀 타입
-- 방 상태 타입
-- 세션 타입
-- 소켓 이벤트 타입
-- 게임 수치 상수
-
-### 3. 웹 앱 스캐폴드 완료
-
-- `/guest` 페이지 생성
-- `/rooms` 페이지 생성
-- `/room/[roomId]` 페이지 생성
-- `/game/[roomId]` placeholder 페이지 생성
-- 글로벌 스타일 추가
-- 소켓 싱글턴 클라이언트 추가
-- 게스트 세션 저장 로직 추가
-- 현재 방 id 저장 로직 추가
-
-### 4. 게임 서버 스캐폴드 완료
-
-- Socket.IO 서버 생성
-- 메모리 기반 `sessions`, `rooms`, `roomCodeIndex` 구조 생성
-- 게스트 입장 핸들러 추가
-- 방 목록 핸들러 추가
-- 방 생성 / 입장 / 비밀번호 입장 핸들러 추가
-- 팀 변경 핸들러 추가
-- 준비 상태 핸들러 추가
-- 로비 채팅 핸들러 추가
-- 방 나가기 / disconnect 정리 핸들러 추가
-- 방장 시작 조건 검사 추가
-
-### 5. 웹-소켓 기본 연결 완료
-
-- 게스트 입장 화면에서 `guest:enter` 호출
-- 방 목록 화면에서 `lobby:list` 반영
-- 방 생성 UI 연결
-- 공개방 / 비밀번호방 입장 연결
-- 로비 화면에서 `room:get-state` 요청
-- 팀 변경, 준비 상태 변경, 채팅, 나가기 연결
-
-### 6. 검증 완료
-
-- `corepack`으로 `pnpm` 활성화
-- `pnpm install` 완료
-- `pnpm typecheck` 통과
-
-## 현재 동작하는 수준
-
-현재는 스프린트 1의 usable skeleton 상태입니다.
-
-가능한 것:
 - 게스트 입장
 - 방 목록 조회
 - 방 생성
-- 공개방 입장
-- 비밀번호방 입장
+- 공개방 / 비밀번호방 입장
+- 서버 기반 방 코드 입장
 - 방 로비 상태 동기화
 - 팀 이동
 - 준비 / 준비 취소
 - 로비 채팅
 - 나가기
 - 방장 시작 시 `countdown` 상태 전환
+- 방 설정 변경 UI/서버 로직
+- 강퇴 UI/서버 로직
+- 로비에서 게임 페이지 자동 이동
+
+### 스프린트 2 완료
+
+- Phaser 전장 컨테이너 연결
+- 원형 아레나 + 중앙선 렌더링
+- `game:state` 타입/이벤트 추가
+- 서버 메모리 `games: Map<roomId, Game>` 추가
+- `room:start-game` 시 game state 생성
+- 서버 game loop 추가 (`50ms` tick)
+- countdown -> playing 전환
+- game page에서 `game:get-state`, `game:state` 구독
+- Phaser 전장에 참가자 위치/이름/체력 마커 렌더링
+- 우클릭 이동 입력을 Phaser에서 받아 `game:move`로 전송
+- 서버 권위 이동 반영
+- 반원 맵 제한 클램프 적용
+
+## 현재 동작하는 수준
+
+현재는 **스프린트 2 완료 상태**입니다.
+
+가능한 것:
+- 게스트 입장
+- 방 생성 / 입장 / 코드 입장
+- 방 로비 전체 흐름
+- 방 설정 변경
+- 강퇴
+- 게임 시작 시 countdown 진입
+- `/game/[roomId]` 이동
+- Phaser 전장 렌더링
+- countdown 표시
+- 참가자 마커 표시
+- 우클릭 이동 입력
+- 서버 권위 위치 갱신
 
 아직 안 된 것:
-- 방 설정 변경 UI/서버 로직
-- 강퇴 UI/서버 로직 연결
-- 실제 게임 페이지 자동 이동
-- Phaser 씬 연결
-- 이동, 투사체, 체력, 사망, 승패
+- `Q` 발사
+- 투사체
+- 충돌 / 체력 감소
+- 사망 처리
+- 승패 / 무승부 / 결과 3초 후 복귀
+- 쿨타임 HUD
+- 이름 + 체력바를 실제 플레이 HUD 스타일로 완성
 
 ## 소켓 이벤트 현황
 
@@ -293,6 +265,7 @@ Mundo_dodgeball_game/
 클라이언트 → 서버
 - `guest:enter`
 - `lobby:list`
+- `lobby:join-by-code`
 - `room:create`
 - `room:join`
 - `room:join-private`
@@ -302,6 +275,10 @@ Mundo_dodgeball_game/
 - `room:chat`
 - `room:leave`
 - `room:start-game`
+- `room:kick-player`
+- `room:update-settings`
+- `game:get-state`
+- `game:move`
 
 서버 → 클라이언트
 - `guest:entered`
@@ -310,6 +287,8 @@ Mundo_dodgeball_game/
 - `room:state`
 - `room:chat-message`
 - `room:system-message`
+- `room:kicked`
+- `game:state`
 - `system:error`
 
 ## 서버 메모리 구조
@@ -319,79 +298,52 @@ Mundo_dodgeball_game/
 - `sessions: Map<socketId, Session>`
 - `rooms: Map<roomId, Room>`
 - `roomCodeIndex: Map<roomCode, roomId>`
+- `games: Map<roomId, Game>`
 
 ### Room 개념
 
 - 로비 상태 관리
 - 플레이어 목록 유지
 - 방장 유지
-- 채팅 메시지 일부 유지 가능
 - 상태: `waiting | countdown | playing`
 
-### GameState
+### Game 개념
 
-- 아직 구현 안 됨
-- 스프린트 2~3에서 추가 예정
-- 방과 분리된 경기 단위 상태로 갈 계획
+- 방과 분리된 경기 단위 상태
+- 플레이어 좌표, HP, alive 상태, moveTarget 유지
+- countdown 및 remainingTime 유지
+- 서버 loop에서 매 tick 계산
 
 ## 바로 이어서 해야 할 작업
 
-### 최우선 작업
+### 최우선 작업: 스프린트 3
 
-1. 방 설정 변경 기능 구현
-- 방 이름 변경
-- 모드 변경
-- 비밀번호 설정 변경
-- 현재 인원 초과 시 모드 변경 불가 처리
+1. `Q` 발사 구현
+- `game:cast-q` 이벤트 추가
+- Q 쿨타임 4초 관리
+- 현재 마우스 방향 기준 투사체 생성
 
-2. 강퇴 기능 구현
-- 방장만 가능
-- 로비에서만 가능
-- 강퇴 대상은 방 목록으로 복귀
-
-3. 게임 시작 후 페이지 이동 연결
-- `room:start-game` 성공 후 `/game/[roomId]`로 이동
-- 현재는 room 상태만 `countdown`으로 바뀜
-- 클라이언트에서 이를 감지해 이동시키는 흐름 필요
-
-### 스프린트 2 작업
-
-4. Phaser 연결
-- `apps/web/src/lib/phaser` 구조 생성
-- `BootScene`, `RoomGameScene` 추가
-- `/game/[roomId]` 페이지에서 Phaser mount
-
-5. 고정 맵 렌더링
-- 원형 아레나
-- 중앙선
-- 팀 스폰 위치
-- 타이머 / 쿨타임 HUD 뼈대
-
-6. 우클릭 이동 구현
-- 서버 권위 이동
-- 목표 좌표 처리
-- 벽 / 중앙선 제한
-- 클라이언트 보간
-
-### 스프린트 3 작업
-
-7. `Q` 발사 구현
-- 즉시 발사
-- 마우스 방향 기반
-- 쿨타임 4초
-- 하단 중앙 숫자 + 게이지 HUD
-
-8. 투사체 / 충돌 / 체력
+2. 투사체 / 충돌 / 체력
 - 식칼 직선 이동
 - 벽 닿으면 소멸
 - 플레이어 충돌 판정
 - 체력 4칸 감소
 
-9. 사망 / 승패 / 로비 복귀
-- 사망 시 반투명 + 관전
+3. 사망 / 승패 / 로비 복귀
+- 사망 시 반투명 + 관전 유지
 - 팀 전멸 시 승패
 - 시간 초과 무승부
 - 결과 3초 후 로비 복귀
+
+### 후속 작업
+
+4. HUD 마감
+- 이름 + 체력바를 실제 게임 HUD 형태로 정리
+- 하단 중앙 Q 쿨타임 게이지 추가
+- countdown 및 상태 텍스트를 UI 레이어로 정리
+
+5. 다국어 문구 정리
+- 현재 페이지 내 하드코딩 문구 일부를 `ko/en` 메시지 구조로 이동
 
 ## 알고 있어야 하는 기술 포인트
 
@@ -404,21 +356,19 @@ Mundo_dodgeball_game/
 - 준비 상태
 - 방장
 - 시작 가능 여부
+- 경기 좌표와 countdown 상태
 
-프론트는 계산보다 반영 중심으로 유지하는 게 좋음.
+### 2. `room:state`, `game:state` 분리
 
-### 2. `room:state` 전체 동기화 전략
-
-현재는 최적화보다 안정성을 우선해서,
-상태가 바뀔 때 전체 `room:state`를 다시 보내는 구조가 맞음.
+- 로비 관련은 `room:state`
+- 경기 관련은 `game:state`
+- 둘을 섞지 않는 것이 중요함
 
 ### 3. `Session` / `RoomPlayer` / `GamePlayer` 분리
 
-현재:
+현재 구조:
 - `Session`
 - `RoomPlayer`
-
-앞으로 필요:
 - `GamePlayer`
 
 세 책임을 섞지 않는 것이 중요함.
@@ -454,8 +404,6 @@ React 페이지에서 `socket.on()`을 쓸 때는 반드시 cleanup 필요.
 ### 의존성 설치
 
 ```bash
-corepack enable
-corepack prepare pnpm@10.6.5 --activate
 pnpm install
 ```
 
@@ -477,11 +425,19 @@ pnpm dev:web
 pnpm dev:game-server
 ```
 
+### 현재 로컬 테스트 포인트
+
+- `/guest`에서 2인 이상 입장
+- 방 생성 / 입장 / 코드 입장 / 비밀번호 방 테스트
+- 로비에서 팀 이동 / 준비 / 강퇴 / 방 설정 변경 테스트
+- 방장이 시작 누르면 `/game/[roomId]`로 이동
+- 게임 페이지에서 카운트다운이 진행되고 우클릭 이동이 반영되는지 확인
+
 ## 다음 코덱스 스레드에 바로 요청하기 좋은 문장 예시
 
-- `docs/context-handoff.md를 읽고 스프린트 1 남은 작업인 방 설정 변경, 강퇴 UI/서버 연결, 게임 시작 후 /game/[roomId] 이동까지 구현해줘.`
-- `docs/context-handoff.md 기준으로 스프린트 2를 시작해서 Phaser 씬 연결과 고정 맵 렌더링을 구현해줘.`
-- `docs/context-handoff.md를 바탕으로 현재 room:start-game 이후 countdown 상태를 감지해서 게임 페이지로 이동하는 흐름부터 연결해줘.`
+- `docs/context-handoff.md를 읽고 스프린트 3인 Q 발사, 투사체, 충돌, 체력 감소부터 구현해줘.`
+- `docs/context-handoff.md 기준으로 game:cast-q 이벤트와 서버 투사체 루프를 추가해줘.`
+- `docs/context-handoff.md를 읽고 현재 countdown + 이동 상태를 유지한 채 Q 쿨타임 HUD와 투사체 렌더링을 붙여줘.`
 
 ## 참고
 

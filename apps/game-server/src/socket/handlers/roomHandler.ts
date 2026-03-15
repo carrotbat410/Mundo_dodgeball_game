@@ -15,6 +15,7 @@ import {
   toRoomState,
   updateRoomSettings
 } from "../../services/roomService";
+import { createGameForRoom, removeGameByRoomId, syncGamePlayersForRoom } from "../../services/gameService";
 import { emitLobbyList } from "./lobbyHandler";
 
 type GameSocket = Socket<ClientToServerEvents, ServerToClientEvents>;
@@ -75,6 +76,12 @@ export function handleRoomDisconnect(io: GameIo, socketId: string) {
   }
 
   session.currentRoomId = null;
+  syncGamePlayersForRoom(room);
+
+  if (room.players.length === 0) {
+    removeGameByRoomId(room.id);
+  }
+
   void io.in(room.id).socketsLeave(room.id);
   io.to(room.id).emit("room:system-message", {
     type: "player_left",
@@ -350,6 +357,8 @@ export function registerRoomHandler(io: GameIo, socket: GameSocket) {
       targetSession.currentRoomId = null;
     }
 
+    syncGamePlayersForRoom(room);
+
     io.to(targetPlayer.socketId).emit("room:kicked", {
       roomId: room.id,
       message: "방장에 의해 강퇴되었습니다."
@@ -384,6 +393,7 @@ export function registerRoomHandler(io: GameIo, socket: GameSocket) {
     }
 
     room.status = "countdown";
+    createGameForRoom(room);
     emitRoomState(io, room.id);
     io.to(room.id).emit("room:system-message", {
       type: "game_starting",

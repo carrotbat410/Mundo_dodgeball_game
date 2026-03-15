@@ -23,4 +23,6 @@ export interface ClientToServerEvents {
   "room:start-game": () => void;
   "room:kick-player": (payload: { targetPlayerId: string }) => void;
   "room:update-settings": (payload: RoomSettingsPayload) => void;
+  "game:get-state": (payload: { roomId: string }) => void;
+  "game:move": (payload: { targetX: number; targetY: number }) => void;
 }

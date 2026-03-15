@@ -1,3 +1,4 @@
+import type { GameStateSnapshot } from "../types/game";
 import type { RoomState, RoomSummary } from "../types/room";
 
 export interface ServerToClientEvents {
@@ -23,6 +24,7 @@ export interface ServerToClientEvents {
     roomId: string;
     message: string;
   }) => void;
+  "game:state": (payload: GameStateSnapshot) => void;
   "system:error": (payload: {
     code: string;
     message: string;
