@@ -5,6 +5,7 @@ import type { RoomGameController } from "../../../lib/phaser/createGame";
 import { Q_COOLDOWN_SEC } from "@mundo/shared";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { detectLocale, t } from "../../../lib/i18n/messages";
 import { getCurrentRoomId } from "../../../lib/room/currentRoom";
 import { getSocket } from "../../../lib/socket/client";
 import { getGuestSession } from "../../../lib/session/guestSession";
@@ -38,6 +39,7 @@ export default function GamePage() {
   const [error, setError] = useState("");
   const containerRef = useRef<HTMLDivElement | null>(null);
   const gameRef = useRef<RoomGameController | null>(null);
+  const locale = useMemo(() => detectLocale(), []);
 
   useEffect(() => {
     const session = getGuestSession();
@@ -144,6 +146,14 @@ export default function GamePage() {
 
   const qProgress = meGamePlayer ? Math.max(0, Math.min(1, 1 - meGamePlayer.qCooldownRemaining / Q_COOLDOWN_SEC)) : 0;
   const resultLabel = getResultLabel(gameState?.result ?? null, meRoomPlayer?.team ?? null);
+  const localizedResultLabel =
+    resultLabel === "무승부"
+      ? t(locale, "game.result.draw")
+      : resultLabel === "승리"
+        ? t(locale, "game.result.win")
+        : resultLabel === "패배"
+          ? t(locale, "game.result.lose")
+          : resultLabel;
 
   return (
     <main className="page-shell">
@@ -158,7 +168,7 @@ export default function GamePage() {
           position: "relative"
         }}
       >
-        {gameState?.status === "finished" && resultLabel ? (
+        {gameState?.status === "finished" && localizedResultLabel ? (
           <div
             style={{
               position: "absolute",
@@ -171,7 +181,7 @@ export default function GamePage() {
             }}
           >
             <div style={{ textAlign: "center", display: "grid", gap: 10 }}>
-              <strong style={{ fontSize: 48, color: "var(--text)" }}>{resultLabel}</strong>
+              <strong style={{ fontSize: 48, color: "var(--text)" }}>{localizedResultLabel}</strong>
               <span style={{ color: "var(--muted)", fontSize: 18 }}>
                 {gameState.resultDelayRemaining.toFixed(1)}초 후 로비로 돌아갑니다.
               </span>
@@ -208,8 +218,8 @@ export default function GamePage() {
         ) : null}
 
         <div style={{ display: "grid", gap: 8 }}>
-          <p style={{ margin: 0, color: "var(--accent)", fontWeight: 700 }}>Game Scene</p>
-          <h1 style={{ margin: 0, fontSize: 36 }}>문도피구 전장</h1>
+          <p style={{ margin: 0, color: "var(--accent)", fontWeight: 700 }}>{t(locale, "game.scene")}</p>
+          <h1 style={{ margin: 0, fontSize: 36 }}>{t(locale, "game.title")}</h1>
           <p style={{ margin: 0, color: error ? "#ff9388" : "var(--muted)", lineHeight: 1.6 }}>
             {error || "우클릭으로 이동하고, Q를 누르면 현재 마우스 방향으로 식칼을 던집니다."}
           </p>
@@ -271,7 +281,7 @@ export default function GamePage() {
           </div>
 
           <aside className="panel" style={{ padding: 20, display: "grid", gap: 14, alignContent: "start" }}>
-            <h2 style={{ margin: 0, fontSize: 22 }}>게임 상태</h2>
+            <h2 style={{ margin: 0, fontSize: 22 }}>{t(locale, "game.scene")}</h2>
             <div style={{ display: "grid", gap: 8, color: "var(--muted)" }}>
               <span>방 이름: {roomState?.room.name ?? "불러오는 중"}</span>
               <span>모드: {gameState?.mode ?? roomState?.room.mode ?? "-"}</span>

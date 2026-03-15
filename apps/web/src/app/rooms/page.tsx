@@ -3,6 +3,7 @@
 import { GAME_MODES, MAX_ROOM_NAME_LENGTH, MAX_ROOM_PASSWORD_LENGTH, MIN_ROOM_PASSWORD_LENGTH, type GameMode, type RoomSummary } from "@mundo/shared";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { detectLocale, t } from "../../lib/i18n/messages";
 import { getSocket } from "../../lib/socket/client";
 import { getGuestSession } from "../../lib/session/guestSession";
 import { saveCurrentRoomId } from "../../lib/room/currentRoom";
@@ -17,6 +18,7 @@ export default function RoomsPage() {
   const [isPrivate, setIsPrivate] = useState(false);
   const [password, setPassword] = useState("");
   const [roomCode, setRoomCode] = useState("");
+  const locale = useMemo(() => detectLocale(), []);
 
   useEffect(() => {
     const session = getGuestSession();
@@ -160,7 +162,7 @@ export default function RoomsPage() {
       <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
           <p style={{ margin: 0, color: "var(--accent)", fontWeight: 700 }}>Lobby</p>
-          <h1 style={{ margin: "8px 0 0", fontSize: 34 }}>방 목록</h1>
+          <h1 style={{ margin: "8px 0 0", fontSize: 34 }}>{t(locale, "rooms.title")}</h1>
         </div>
         <button
           type="button"
@@ -175,7 +177,7 @@ export default function RoomsPage() {
             cursor: "pointer"
           }}
         >
-          {isCreateOpen ? "닫기" : "방 만들기"}
+          {isCreateOpen ? t(locale, "rooms.close") : t(locale, "rooms.create")}
         </button>
       </header>
 
@@ -239,12 +241,12 @@ export default function RoomsPage() {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
                 <strong style={{ fontSize: 18, lineHeight: 1.25 }}>{room.name}</strong>
                 <span style={{ color: room.status === "waiting" ? "var(--accent)" : "var(--muted)" }}>
-                  {room.status === "waiting" ? "대기중" : "게임중"}
+                  {room.status === "waiting" ? t(locale, "rooms.waiting") : t(locale, "rooms.playing")}
                 </span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
                 <span style={{ color: "var(--muted)", fontSize: 14 }}>
-                  {room.mode} · {room.currentPlayers}/{room.maxPlayers} · {room.isPrivate ? "비밀번호방" : "공개방"} · 코드 {room.roomCode}
+                  {room.mode} · {room.currentPlayers}/{room.maxPlayers} · {room.isPrivate ? t(locale, "rooms.private") : t(locale, "rooms.public")} · 코드 {room.roomCode}
                 </span>
                 <button
                   type="button"
@@ -259,14 +261,14 @@ export default function RoomsPage() {
                     cursor: room.status === "waiting" ? "pointer" : "not-allowed"
                   }}
                 >
-                  {room.status === "waiting" ? "입장" : "입장 불가"}
+                  {room.status === "waiting" ? t(locale, "rooms.join") : t(locale, "rooms.joinBlocked")}
                 </button>
               </div>
             </article>
           ))}
         </div>
         <aside className="panel" style={{ padding: 20, display: "grid", gap: 14, alignContent: "start", alignSelf: "start" }}>
-          <h2 style={{ margin: 0, fontSize: 22 }}>방 코드 입장</h2>
+          <h2 style={{ margin: 0, fontSize: 22 }}>{t(locale, "rooms.joinByCode")}</h2>
           <input
             value={roomCode}
             onChange={(event) => setRoomCode(event.target.value.toUpperCase())}
@@ -291,7 +293,7 @@ export default function RoomsPage() {
               cursor: "pointer"
             }}
           >
-            코드로 입장
+            {t(locale, "rooms.joinByCode")}
           </button>
           <button
             type="button"
@@ -305,7 +307,7 @@ export default function RoomsPage() {
               cursor: "pointer"
             }}
           >
-            새로고침
+            {t(locale, "rooms.refresh")}
           </button>
           <p style={{ margin: 0, color: error ? "#ff9388" : "var(--muted)", lineHeight: 1.6 }}>
             {error || "게임중 방은 목록에 표시만 하고 입장은 막습니다."}
