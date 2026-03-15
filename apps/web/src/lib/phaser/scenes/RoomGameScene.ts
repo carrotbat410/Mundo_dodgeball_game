@@ -18,6 +18,7 @@ interface PlayerVisual {
 export class RoomGameScene extends Phaser.Scene {
   private players = new Map<string, PlayerVisual>();
   private projectiles = new Map<string, Phaser.GameObjects.Arc>();
+  private previousHp = new Map<string, number>();
   private statusText?: Phaser.GameObjects.Text;
   private countdownText?: Phaser.GameObjects.Text;
   private onMoveCommand: ((x: number, y: number) => void) | null = null;
@@ -127,7 +128,9 @@ export class RoomGameScene extends Phaser.Scene {
 
     snapshot.players.forEach((player) => {
       const visual = this.ensurePlayerVisual(player);
+      this.maybePlayHitEffect(player, visual);
       this.updatePlayerVisual(visual, player);
+      this.previousHp.set(player.playerId, player.hp);
     });
 
     const nextProjectileIds = new Set(snapshot.projectiles.map((projectile) => projectile.projectileId));
@@ -145,6 +148,7 @@ export class RoomGameScene extends Phaser.Scene {
       let visual = this.projectiles.get(projectile.projectileId);
 
       if (!visual) {
+        this.playCastEffect(projectile.x, projectile.y, projectile.team === "blue" ? 0x9fe6ff : 0xffc2bb);
         visual = this.add.circle(
           projectile.x,
           projectile.y,
@@ -210,5 +214,43 @@ export class RoomGameScene extends Phaser.Scene {
     });
     visual.container.alpha = player.alive ? 1 : 0.4;
     visual.container.setPosition(player.x, player.y);
+  }
+
+  private maybePlayHitEffect(player: GamePlayerSnapshot, visual: PlayerVisual) {
+    const prevHp = this.previousHp.get(player.playerId);
+
+    if (prevHp == null || prevHp <= player.hp) {
+      return;
+    }
+
+    this.tweens.add({
+      targets: visual.container,
+      alpha: player.alive ? 0.35 : 0.2,
+      duration: 70,
+      yoyo: true,
+      repeat: 1
+    });
+
+    const burst = this.add.circle(player.x, player.y, PLAYER_RADIUS + 6, 0xffd166, 0.38);
+    burst.setStrokeStyle(3, 0xffffff, 0.25);
+    this.tweens.add({
+      targets: burst,
+      scale: 1.9,
+      alpha: 0,
+      duration: 240,
+      onComplete: () => burst.destroy()
+    });
+  }
+
+  private playCastEffect(x: number, y: number, color: number) {
+    const ring = this.add.circle(x, y, PLAYER_RADIUS + 2, color, 0.2);
+    ring.setStrokeStyle(2, 0xffffff, 0.18);
+    this.tweens.add({
+      targets: ring,
+      scale: 1.7,
+      alpha: 0,
+      duration: 180,
+      onComplete: () => ring.destroy()
+    });
   }
 }

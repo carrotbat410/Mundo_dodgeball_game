@@ -179,6 +179,34 @@ export default function GamePage() {
           </div>
         ) : null}
 
+        {gameState?.status === "playing" && meGamePlayer && !meGamePlayer.alive ? (
+          <div
+            style={{
+              position: "absolute",
+              left: 24,
+              right: 24,
+              top: 110,
+              display: "grid",
+              placeItems: "center",
+              zIndex: 6,
+              pointerEvents: "none"
+            }}
+          >
+            <div
+              style={{
+                padding: "12px 18px",
+                borderRadius: 16,
+                background: "rgba(4, 7, 14, 0.72)",
+                color: "#ffd5ca",
+                border: "1px solid rgba(255,255,255,0.08)",
+                fontWeight: 700
+              }}
+            >
+              탈락! 경기 종료까지 관전 중입니다.
+            </div>
+          </div>
+        ) : null}
+
         <div style={{ display: "grid", gap: 8 }}>
           <p style={{ margin: 0, color: "var(--accent)", fontWeight: 700 }}>Game Scene</p>
           <h1 style={{ margin: 0, fontSize: 36 }}>문도피구 전장</h1>
