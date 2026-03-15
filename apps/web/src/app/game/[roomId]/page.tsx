@@ -119,7 +119,7 @@ export default function GamePage() {
       gameRef.current?.destroy();
       gameRef.current = null;
     };
-  }, [gameState]);
+  }, []);
 
   useEffect(() => {
     if (!gameState || !gameRef.current) {
