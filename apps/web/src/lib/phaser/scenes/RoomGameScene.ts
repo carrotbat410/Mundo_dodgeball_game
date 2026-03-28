@@ -14,11 +14,19 @@ interface PlayerVisual {
   container: Phaser.GameObjects.Container;
   label: Phaser.GameObjects.Text;
   hpSegments: Phaser.GameObjects.Rectangle[];
+  targetX: number;
+  targetY: number;
+}
+
+interface ProjectileVisual {
+  circle: Phaser.GameObjects.Arc;
+  targetX: number;
+  targetY: number;
 }
 
 export class RoomGameScene extends Phaser.Scene {
   private players = new Map<string, PlayerVisual>();
-  private projectiles = new Map<string, Phaser.GameObjects.Arc>();
+  private projectiles = new Map<string, ProjectileVisual>();
   private previousHp = new Map<string, number>();
   private statusText?: Phaser.GameObjects.Text;
   private countdownText?: Phaser.GameObjects.Text;
@@ -122,6 +130,20 @@ export class RoomGameScene extends Phaser.Scene {
     this.statusText.setOrigin(0.5);
   }
 
+  update(_time: number, delta: number) {
+    const lerpFactor = Math.min(1, delta / 1000 * 14);
+
+    for (const visual of this.players.values()) {
+      visual.container.x = Phaser.Math.Linear(visual.container.x, visual.targetX, lerpFactor);
+      visual.container.y = Phaser.Math.Linear(visual.container.y, visual.targetY, lerpFactor);
+    }
+
+    for (const visual of this.projectiles.values()) {
+      visual.circle.x = Phaser.Math.Linear(visual.circle.x, visual.targetX, lerpFactor);
+      visual.circle.y = Phaser.Math.Linear(visual.circle.y, visual.targetY, lerpFactor);
+    }
+  }
+
   updateSnapshot(snapshot: GameStateSnapshot) {
     if (!this.statusText || !this.countdownText) {
       return;
@@ -152,7 +174,7 @@ export class RoomGameScene extends Phaser.Scene {
         continue;
       }
 
-      visual.destroy();
+      visual.circle.destroy();
       this.projectiles.delete(projectileId);
     }
 
@@ -161,18 +183,24 @@ export class RoomGameScene extends Phaser.Scene {
 
       if (!visual) {
         this.playCastEffect(projectile.x, projectile.y, projectile.team === "blue" ? 0x9fe6ff : 0xffc2bb);
-        visual = this.add.circle(
+        const circle = this.add.circle(
           projectile.x,
           projectile.y,
           PROJECTILE_RADIUS,
           projectile.team === "blue" ? 0x9fe6ff : 0xffc2bb,
           1
         );
-        visual.setStrokeStyle(2, 0xffffff, 0.35);
+        circle.setStrokeStyle(2, 0xffffff, 0.35);
+        visual = {
+          circle,
+          targetX: projectile.x,
+          targetY: projectile.y
+        };
         this.projectiles.set(projectile.projectileId, visual);
       }
 
-      visual.setPosition(projectile.x, projectile.y);
+      visual.targetX = projectile.x;
+      visual.targetY = projectile.y;
     });
 
     if (snapshot.status === "countdown") {
@@ -213,7 +241,7 @@ export class RoomGameScene extends Phaser.Scene {
     label.setOrigin(0.5);
 
     const container = this.add.container(player.x, player.y, [body, ...hpSegments, label]);
-    const visual = { container, label, hpSegments };
+    const visual = { container, label, hpSegments, targetX: player.x, targetY: player.y };
 
     this.players.set(player.playerId, visual);
     return visual;
@@ -225,7 +253,8 @@ export class RoomGameScene extends Phaser.Scene {
       segment.setFillStyle(index < player.hp ? 0xb9ff66 : 0x415064, index < player.hp ? 1 : 0.55);
     });
     visual.container.alpha = player.alive ? 1 : 0.4;
-    visual.container.setPosition(player.x, player.y);
+    visual.targetX = player.x;
+    visual.targetY = player.y;
   }
 
   private maybePlayHitEffect(player: GamePlayerSnapshot, visual: PlayerVisual) {
