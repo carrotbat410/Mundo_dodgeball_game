@@ -1,0 +1,20 @@
+<svg width="24" height="32" viewBox="0 0 24 32" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+  <rect width="24" height="32" fill="none"/>
+  <ellipse cx="12" cy="28" rx="7" ry="3" fill="#2f2148" opacity="0.55"/>
+  <rect x="9" y="18" width="6" height="8" fill="#58306f"/>
+  <rect x="8" y="16" width="8" height="3" fill="#6e3d8f"/>
+  <rect x="8" y="13" width="8" height="3" fill="#8b4db3"/>
+  <rect x="7" y="10" width="10" height="3" fill="#f04fff"/>
+  <rect x="6" y="7" width="12" height="3" fill="#ff74ff"/>
+  <rect x="7" y="4" width="10" height="3" fill="#ff9dff"/>
+  <rect x="10" y="2" width="4" height="2" fill="#ffd9ff"/>
+  <rect x="4" y="13" width="4" height="2" fill="#c8d4f3"/>
+  <rect x="2" y="15" width="5" height="2" fill="#dbe4fb"/>
+  <rect x="16" y="13" width="4" height="2" fill="#c8d4f3"/>
+  <rect x="17" y="15" width="5" height="2" fill="#dbe4fb"/>
+  <rect x="4" y="15" width="3" height="2" fill="#b5c3ea"/>
+  <rect x="17" y="15" width="3" height="2" fill="#b5c3ea"/>
+  <rect x="8" y="8" width="8" height="2" fill="#ffb7ff" opacity="0.8"/>
+  <ellipse cx="12" cy="9" rx="10" ry="4" fill="none" stroke="#ff9dff" stroke-opacity="0.45" stroke-width="1"/>
+  <ellipse cx="12" cy="10" rx="12" ry="5" fill="none" stroke="#ffb7ff" stroke-opacity="0.22" stroke-width="1"/>
+</svg>

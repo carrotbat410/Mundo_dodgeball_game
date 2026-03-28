@@ -19,6 +19,7 @@ interface PlayerVisual {
   sprite: Phaser.GameObjects.Image;
   targetX: number;
   targetY: number;
+  facingAngle: number;
 }
 
 interface ProjectileVisual {
@@ -52,8 +53,14 @@ export class RoomGameScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image("mundo-brawler", "/sprites/mundo-brawler.svg");
+    this.load.image("mundo-brawler-front", "/sprites/mundo-brawler-front.svg");
+    this.load.image("mundo-brawler-back", "/sprites/mundo-brawler-back.svg");
+    this.load.image("mundo-brawler-side-front", "/sprites/mundo-brawler-side-front.svg");
+    this.load.image("mundo-brawler-side-back", "/sprites/mundo-brawler-side-back.svg");
     this.load.image("cleaver", "/sprites/cleaver.svg");
+    this.load.image("baron-floor-corruption", "/sprites/baron-floor-corruption.svg");
+    this.load.image("baron-surroundings", "/sprites/baron-surroundings.svg");
+    this.load.image("pink-ward", "/sprites/pink-ward.svg");
   }
 
   create() {
@@ -210,9 +217,11 @@ export class RoomGameScene extends Phaser.Scene {
     const aura = this.add.circle(0, 4, PLAYER_RADIUS + 4, player.team === "blue" ? 0x47b8ff : 0xff6d5e, 0.18);
     aura.setStrokeStyle(3, player.team === "blue" ? 0x9fe6ff : 0xffb0a5, 0.58);
 
-    const sprite = this.add.image(0, -2, "mundo-brawler");
+    const facingKey = this.getFacingTextureKey(player.facingAngle);
+    const sprite = this.add.image(0, -2, facingKey);
     sprite.setScale(2.35);
     sprite.setDisplayOrigin(16, 24);
+    sprite.setFlipX(Math.cos(player.facingAngle) < -0.15);
 
     const hpSegments = [-18, -6, 6, 18].map((offset) => {
       const segment = this.add.rectangle(offset, PLAYER_RADIUS + 16, 10, 8, 0xb9ff66, 1);
@@ -229,7 +238,7 @@ export class RoomGameScene extends Phaser.Scene {
     label.setOrigin(0.5);
 
     const container = this.add.container(player.x, player.y, [shadow, aura, sprite, ...hpSegments, label]);
-    const visual = { container, label, hpSegments, shadow, aura, sprite, targetX: player.x, targetY: player.y };
+    const visual = { container, label, hpSegments, shadow, aura, sprite, targetX: player.x, targetY: player.y, facingAngle: player.facingAngle };
 
     this.players.set(player.playerId, visual);
     return visual;
@@ -240,6 +249,46 @@ export class RoomGameScene extends Phaser.Scene {
     bg.setDepth(-200);
     bg.fillGradientStyle(0x081019, 0x081019, 0x132334, 0x132334, 1);
     bg.fillRect(0, 0, width, height);
+
+    const surroundings = this.add.image(width / 2, height / 2, "baron-surroundings");
+    surroundings.setDepth(-195);
+    surroundings.setDisplaySize(width, height);
+
+    const outerTerrain = this.add.graphics();
+    outerTerrain.setDepth(-190);
+    outerTerrain.fillStyle(0x294028, 0.96);
+    outerTerrain.fillPoints(
+      [
+        new Phaser.Geom.Point(0, 0),
+        new Phaser.Geom.Point(width, 0),
+        new Phaser.Geom.Point(width, 160),
+        new Phaser.Geom.Point(1220, 98),
+        new Phaser.Geom.Point(1080, 78),
+        new Phaser.Geom.Point(930, 64),
+        new Phaser.Geom.Point(756, 58),
+        new Phaser.Geom.Point(598, 74),
+        new Phaser.Geom.Point(432, 104),
+        new Phaser.Geom.Point(280, 136),
+        new Phaser.Geom.Point(0, 182)
+      ],
+      true
+    );
+    outerTerrain.fillStyle(0x1f3422, 0.9);
+    outerTerrain.fillPoints(
+      [
+        new Phaser.Geom.Point(1124, 700),
+        new Phaser.Geom.Point(width, 640),
+        new Phaser.Geom.Point(width, height),
+        new Phaser.Geom.Point(0, height),
+        new Phaser.Geom.Point(0, 620),
+        new Phaser.Geom.Point(198, 600),
+        new Phaser.Geom.Point(364, 620),
+        new Phaser.Geom.Point(520, 646),
+        new Phaser.Geom.Point(712, 656),
+        new Phaser.Geom.Point(918, 642)
+      ],
+      true
+    );
 
     const ravine = this.add.graphics();
     ravine.setDepth(-180);
@@ -261,57 +310,350 @@ export class RoomGameScene extends Phaser.Scene {
 
     const water = this.add.graphics();
     water.setDepth(-120);
-    water.fillStyle(0x0b2740, 0.96);
-    water.fillEllipse(MAP_CENTER_X, MAP_CENTER_Y + 26, MAP_RADIUS * 1.56, MAP_RADIUS * 1.02);
-    water.fillStyle(0x103d61, 0.68);
-    water.fillEllipse(MAP_CENTER_X, MAP_CENTER_Y + 18, MAP_RADIUS * 1.2, MAP_RADIUS * 0.7);
-    water.fillStyle(0x4b9ac5, 0.1);
-    water.fillEllipse(MAP_CENTER_X - 36, MAP_CENTER_Y + 8, MAP_RADIUS * 0.7, MAP_RADIUS * 0.28);
-    water.fillEllipse(MAP_CENTER_X + 62, MAP_CENTER_Y + 42, MAP_RADIUS * 0.52, MAP_RADIUS * 0.22);
+    water.fillStyle(0x091c2d, 0.98);
+    water.fillEllipse(MAP_CENTER_X, MAP_CENTER_Y + 34, MAP_RADIUS * 1.96, MAP_RADIUS * 1.3);
+    water.fillStyle(0x0b2740, 0.92);
+    water.fillEllipse(MAP_CENTER_X, MAP_CENTER_Y + 26, MAP_RADIUS * 1.78, MAP_RADIUS * 1.14);
+    water.fillStyle(0x103d61, 0.58);
+    water.fillEllipse(MAP_CENTER_X + 8, MAP_CENTER_Y + 20, MAP_RADIUS * 1.42, MAP_RADIUS * 0.88);
+    water.fillStyle(0x4b9ac5, 0.08);
+    water.fillEllipse(MAP_CENTER_X - 48, MAP_CENTER_Y + 10, MAP_RADIUS * 0.9, MAP_RADIUS * 0.36);
+    water.fillEllipse(MAP_CENTER_X + 82, MAP_CENTER_Y + 58, MAP_RADIUS * 0.72, MAP_RADIUS * 0.3);
 
     const floor = this.add.graphics();
     floor.setDepth(-110);
-    floor.fillStyle(0x12273a, 0.84);
-    floor.fillEllipse(MAP_CENTER_X, MAP_CENTER_Y + 10, MAP_RADIUS * 1.64, MAP_RADIUS * 1.06);
-    floor.lineStyle(8, 0x7bdcff, 0.12);
-    floor.strokeEllipse(MAP_CENTER_X, MAP_CENTER_Y + 8, MAP_RADIUS * 1.62, MAP_RADIUS * 1.02);
+    floor.fillStyle(0x14263a, 0.9);
+    floor.fillEllipse(MAP_CENTER_X, MAP_CENTER_Y + 18, MAP_RADIUS * 1.88, MAP_RADIUS * 1.22);
+    floor.fillStyle(0x19293f, 0.64);
+    floor.fillEllipse(MAP_CENTER_X + 12, MAP_CENTER_Y + 26, MAP_RADIUS * 1.58, MAP_RADIUS * 1.02);
 
-    const divider = this.add.graphics();
-    divider.setDepth(-100);
-    divider.lineStyle(5, 0xf1f5fb, 0.16);
-    divider.beginPath();
-    divider.moveTo(MAP_CENTER_X, MAP_CENTER_Y - MAP_RADIUS * 0.56);
-    divider.lineTo(MAP_CENTER_X, MAP_CENTER_Y + MAP_RADIUS * 0.56);
-    divider.strokePath();
+    const corruption = this.add.image(MAP_CENTER_X - 8, MAP_CENTER_Y + 24, "baron-floor-corruption");
+    corruption.setDepth(-101);
+    corruption.setAlpha(0.92);
+    corruption.setDisplaySize(MAP_RADIUS * 2.56, MAP_RADIUS * 1.98);
 
-    const blueTint = this.add.graphics();
-    blueTint.setDepth(-90);
-    blueTint.fillStyle(0x47b8ff, 0.08);
-    blueTint.slice(MAP_CENTER_X, MAP_CENTER_Y + 10, MAP_RADIUS * 0.82, Phaser.Math.DegToRad(90), Phaser.Math.DegToRad(270), false);
-    blueTint.fillPath();
+    const playableGlow = this.add.graphics();
+    playableGlow.setDepth(-100);
+    playableGlow.fillStyle(0x8f32ff, 0.08);
+    playableGlow.fillEllipse(MAP_CENTER_X - 44, MAP_CENTER_Y + 34, MAP_RADIUS * 1.26, MAP_RADIUS * 0.74);
+    playableGlow.fillEllipse(MAP_CENTER_X + 72, MAP_CENTER_Y + 38, MAP_RADIUS * 1.34, MAP_RADIUS * 0.7);
+    playableGlow.fillStyle(0xc255ff, 0.07);
+    playableGlow.fillEllipse(MAP_CENTER_X + 10, MAP_CENTER_Y + 48, MAP_RADIUS * 1.62, MAP_RADIUS * 1.02);
 
-    const redTint = this.add.graphics();
-    redTint.setDepth(-90);
-    redTint.fillStyle(0xff6d5e, 0.08);
-    redTint.slice(MAP_CENTER_X, MAP_CENTER_Y + 10, MAP_RADIUS * 0.82, Phaser.Math.DegToRad(-90), Phaser.Math.DegToRad(90), false);
-    redTint.fillPath();
+    const teamWashBlue = this.add.graphics();
+    teamWashBlue.setDepth(-95);
+    teamWashBlue.fillStyle(0x4b8cff, 0.045);
+    teamWashBlue.beginPath();
+    teamWashBlue.moveTo(MAP_CENTER_X - 240, MAP_CENTER_Y + 126);
+    teamWashBlue.lineTo(MAP_CENTER_X - 278, MAP_CENTER_Y + 44);
+    teamWashBlue.lineTo(MAP_CENTER_X - 232, MAP_CENTER_Y - 56);
+    teamWashBlue.lineTo(MAP_CENTER_X - 110, MAP_CENTER_Y - 122);
+    teamWashBlue.lineTo(MAP_CENTER_X + 8, MAP_CENTER_Y - 116);
+    teamWashBlue.lineTo(MAP_CENTER_X - 34, MAP_CENTER_Y + 34);
+    teamWashBlue.closePath();
+    teamWashBlue.fillPath();
 
-    const rockColor = [0x5b6676, 0x444d59, 0x2f3741];
-    const rocks = [
-      [490, 180, 560, 130, 600, 200, 548, 236],
-      [1040, 156, 1108, 188, 1064, 260, 1000, 218],
-      [438, 556, 514, 512, 548, 590, 470, 626],
-      [1088, 540, 1162, 510, 1196, 596, 1120, 640],
-      [630, 92, 700, 78, 726, 136, 650, 154],
-      [930, 80, 1008, 102, 972, 160, 904, 136]
+    const teamWashRed = this.add.graphics();
+    teamWashRed.setDepth(-95);
+    teamWashRed.fillStyle(0xff6f78, 0.045);
+    teamWashRed.beginPath();
+    teamWashRed.moveTo(MAP_CENTER_X + 248, MAP_CENTER_Y - 104);
+    teamWashRed.lineTo(MAP_CENTER_X + 286, MAP_CENTER_Y - 12);
+    teamWashRed.lineTo(MAP_CENTER_X + 246, MAP_CENTER_Y + 90);
+    teamWashRed.lineTo(MAP_CENTER_X + 124, MAP_CENTER_Y + 152);
+    teamWashRed.lineTo(MAP_CENTER_X + 6, MAP_CENTER_Y + 146);
+    teamWashRed.lineTo(MAP_CENTER_X + 42, MAP_CENTER_Y + 0);
+    teamWashRed.closePath();
+    teamWashRed.fillPath();
+
+    const dividerGlow = this.add.graphics();
+    dividerGlow.setDepth(-94);
+    dividerGlow.lineStyle(10, 0xd357ff, 0.06);
+    dividerGlow.beginPath();
+    dividerGlow.moveTo(MAP_CENTER_X + MAP_RADIUS * 0.52, MAP_CENTER_Y - MAP_RADIUS * 0.52);
+    dividerGlow.lineTo(MAP_CENTER_X - MAP_RADIUS * 0.52, MAP_CENTER_Y + MAP_RADIUS * 0.52);
+    dividerGlow.strokePath();
+
+    const dividerStartX = MAP_CENTER_X + MAP_RADIUS * 0.5;
+    const dividerStartY = MAP_CENTER_Y - MAP_RADIUS * 0.5;
+    const dividerEndX = MAP_CENTER_X - MAP_RADIUS * 0.5;
+    const dividerEndY = MAP_CENTER_Y + MAP_RADIUS * 0.5;
+    const wardCount = 6;
+
+    for (let index = 0; index < wardCount; index += 1) {
+      const t = index / (wardCount - 1);
+      const x = Phaser.Math.Linear(dividerStartX, dividerEndX, t);
+      const y = Phaser.Math.Linear(dividerStartY, dividerEndY, t);
+      const wardShadow = this.add.ellipse(x, y + 14, 24, 10, 0x28173d, 0.3);
+      wardShadow.setDepth(-93 + index * 0.01);
+
+      const ward = this.add.image(x, y, "pink-ward");
+      ward.setScale(1.2);
+      ward.setDepth(-92 + index * 0.01);
+    }
+
+    const outerPlayableBorder = this.add.graphics();
+    outerPlayableBorder.setDepth(-93);
+    outerPlayableBorder.lineStyle(8, 0xb545ff, 0.24);
+    outerPlayableBorder.strokeEllipse(MAP_CENTER_X, MAP_CENTER_Y + 28, MAP_RADIUS * 1.92, MAP_RADIUS * 1.26);
+    outerPlayableBorder.lineStyle(18, 0xca72ff, 0.05);
+    outerPlayableBorder.strokeEllipse(MAP_CENTER_X, MAP_CENTER_Y + 28, MAP_RADIUS * 1.98, MAP_RADIUS * 1.32);
+
+    const innerRim = this.add.graphics();
+    innerRim.setDepth(-121);
+    innerRim.lineStyle(22, 0x0a1018, 0.32);
+    innerRim.strokeEllipse(MAP_CENTER_X, MAP_CENTER_Y + 18, MAP_RADIUS * 1.92, MAP_RADIUS * 1.24);
+    innerRim.lineStyle(5, 0xd068ff, 0.14);
+    innerRim.strokeEllipse(MAP_CENTER_X, MAP_CENTER_Y + 26, MAP_RADIUS * 1.82, MAP_RADIUS * 1.16);
+
+    const continuousWallShadow = this.add.polygon(
+      0,
+      0,
+      [
+        424, 320, 446, 236, 516, 154, 630, 118, 786, 102, 936, 122, 1064, 180, 1148, 266,
+        1178, 362, 1152, 466, 1074, 556, 952, 618, 800, 646, 654, 634, 530, 596, 454, 532, 420, 436
+      ],
+      0x151a20,
+      0.84
+    );
+    continuousWallShadow.setOrigin(0, 0);
+    continuousWallShadow.setDepth(-179);
+
+    const continuousWallBase = this.add.polygon(
+      0,
+      0,
+      [
+        446, 320, 466, 248, 528, 172, 636, 136, 786, 122, 928, 140, 1046, 194, 1122, 274,
+        1150, 364, 1126, 458, 1056, 540, 944, 596, 804, 620, 670, 610, 556, 576, 482, 516, 448, 430
+      ],
+      0x5d6672,
+      0.92
+    );
+    continuousWallBase.setOrigin(0, 0);
+    continuousWallBase.setDepth(-178.5);
+    continuousWallBase.setStrokeStyle(6, 0xd8e2eb, 0.05);
+
+    const continuousWallFace = this.add.polygon(
+      0,
+      0,
+      [
+        486, 330, 500, 266, 558, 204, 650, 178, 782, 166, 906, 180, 1010, 226, 1078, 296,
+        1100, 370, 1080, 446, 1016, 514, 920, 560, 798, 580, 684, 572, 590, 544, 528, 494, 492, 424
+      ],
+      0x8f99a6,
+      0.16
+    );
+    continuousWallFace.setOrigin(0, 0);
+    continuousWallFace.setDepth(-178.25);
+    continuousWallFace.setStrokeStyle(3, 0xf2f6fb, 0.04);
+
+    const wallCrest = this.add.polygon(
+      0,
+      0,
+      [
+        456, 238, 492, 194, 520, 144, 560, 156, 602, 118, 646, 132, 706, 88, 750, 102,
+        808, 82, 866, 96, 930, 120, 972, 110, 1030, 152, 1088, 202, 1128, 262, 1144, 318,
+        1126, 290, 1088, 234, 1030, 184, 972, 144, 910, 132, 850, 112, 790, 100, 734, 114,
+        682, 132, 626, 150, 574, 178, 520, 208, 484, 230
+      ],
+      0x6a7480,
+      0.95
+    );
+    wallCrest.setOrigin(0, 0);
+    wallCrest.setDepth(-178.1);
+    wallCrest.setStrokeStyle(5, 0xe7edf4, 0.08);
+
+    const wallCrestHighlight = this.add.graphics();
+    wallCrestHighlight.setDepth(-178.05);
+    wallCrestHighlight.lineStyle(5, 0xf4f8fc, 0.14);
+    [
+      [498, 190, 528, 150, 560, 156],
+      [610, 124, 646, 132, 700, 96],
+      [754, 102, 806, 86, 860, 98],
+      [912, 128, 972, 116, 1022, 154],
+      [1066, 186, 1104, 224, 1126, 258]
+    ].forEach((path) => {
+      wallCrestHighlight.beginPath();
+      wallCrestHighlight.moveTo(path[0], path[1]);
+      for (let index = 2; index < path.length; index += 2) {
+        wallCrestHighlight.lineTo(path[index], path[index + 1]);
+      }
+      wallCrestHighlight.strokePath();
+    });
+
+    const wallInnerShadow = this.add.graphics();
+    wallInnerShadow.setDepth(-178.02);
+    wallInnerShadow.lineStyle(14, 0x14181e, 0.24);
+    wallInnerShadow.beginPath();
+    wallInnerShadow.moveTo(486, 332);
+    wallInnerShadow.lineTo(526, 266);
+    wallInnerShadow.lineTo(598, 216);
+    wallInnerShadow.lineTo(698, 188);
+    wallInnerShadow.lineTo(822, 184);
+    wallInnerShadow.lineTo(934, 206);
+    wallInnerShadow.lineTo(1028, 258);
+    wallInnerShadow.lineTo(1088, 330);
+    wallInnerShadow.lineTo(1102, 396);
+    wallInnerShadow.lineTo(1088, 450);
+    wallInnerShadow.strokePath();
+
+    const wallMasses = [
+      {
+        shadow: [448, 236, 520, 152, 636, 118, 648, 178, 560, 246],
+        base: [460, 220, 524, 148, 628, 126, 636, 184, 560, 238, 496, 244],
+        face: [490, 194, 542, 162, 606, 150, 596, 188, 540, 212, 504, 214]
+      },
+      {
+        shadow: [616, 150, 716, 98, 860, 96, 878, 146, 760, 186, 652, 188],
+        base: [624, 144, 722, 102, 850, 104, 868, 148, 760, 180, 654, 182],
+        face: [678, 126, 734, 112, 824, 114, 824, 142, 752, 162, 692, 154]
+      },
+      {
+        shadow: [854, 112, 962, 128, 1064, 188, 1024, 258, 922, 220, 860, 162],
+        base: [864, 116, 958, 130, 1048, 188, 1012, 248, 924, 214, 868, 160],
+        face: [900, 132, 954, 144, 1004, 184, 978, 220, 924, 196, 892, 162]
+      },
+      {
+        shadow: [1044, 192, 1130, 246, 1160, 352, 1126, 456, 1046, 522, 1000, 438, 998, 274],
+        base: [1048, 200, 1122, 252, 1148, 350, 1118, 446, 1048, 510, 1008, 432, 1008, 278],
+        face: [1066, 238, 1110, 280, 1126, 352, 1104, 420, 1058, 458, 1032, 406, 1030, 298]
+      },
+      {
+        shadow: [432, 274, 464, 226, 482, 324, 468, 448, 442, 522, 404, 444, 398, 344],
+        base: [440, 278, 466, 234, 480, 324, 466, 442, 440, 510, 410, 438, 406, 346],
+        face: [446, 314, 460, 286, 468, 344, 460, 426, 440, 470, 426, 422, 426, 354]
+      },
+      {
+        shadow: [454, 516, 530, 482, 620, 520, 608, 584, 520, 622, 450, 586],
+        base: [462, 520, 532, 490, 612, 522, 602, 580, 522, 614, 458, 582],
+        face: [494, 526, 542, 508, 592, 528, 584, 560, 534, 584, 492, 566]
+      }
     ];
 
-    rocks.forEach((points, index) => {
-      const polygon = this.add.polygon(0, 0, points, rockColor[index % rockColor.length], 0.9);
-      polygon.setOrigin(0, 0);
-      polygon.setDepth(-170 + index);
-      polygon.setStrokeStyle(3, 0xd6dee8, 0.05);
+    wallMasses.forEach((mass, index) => {
+      const shadow = this.add.polygon(0, 0, mass.shadow, 0x161b22, 0.92);
+      shadow.setOrigin(0, 0);
+      shadow.setDepth(-178 + index * 3);
+
+      const base = this.add.polygon(0, 0, mass.base, 0x697584, 0.98);
+      base.setOrigin(0, 0);
+      base.setDepth(-177 + index * 3);
+      base.setStrokeStyle(5, 0xd6e1eb, 0.09);
+
+      const face = this.add.polygon(0, 0, mass.face, 0x95a2af, 0.22);
+      face.setOrigin(0, 0);
+      face.setDepth(-176 + index * 3);
+      face.setStrokeStyle(2, 0xf3f7fb, 0.05);
     });
+
+    const ledges = [
+      [488, 164, 560, 126, 612, 180, 532, 226],
+      [1020, 134, 1096, 176, 1044, 250, 978, 208],
+      [1120, 520, 1188, 488, 1220, 572, 1146, 616],
+      [432, 520, 502, 484, 542, 560, 466, 606]
+    ];
+
+    ledges.forEach((points, index) => {
+      const polygon = this.add.polygon(0, 0, points, index % 2 === 0 ? 0x495462 : 0x3a424d, 0.96);
+      polygon.setOrigin(0, 0);
+      polygon.setDepth(-178 + index);
+      polygon.setStrokeStyle(3, 0xd6dee8, 0.06);
+    });
+
+    const cliffCrowns = [
+      [462, 172, 506, 120, 548, 136, 582, 88, 628, 106, 604, 170, 538, 194],
+      [620, 116, 682, 74, 742, 82, 792, 58, 854, 74, 820, 138, 748, 156, 666, 148],
+      [860, 78, 928, 58, 982, 74, 1032, 110, 1070, 94, 1098, 144, 1032, 188, 946, 170, 888, 126],
+      [1040, 178, 1114, 168, 1168, 214, 1188, 278, 1144, 324, 1090, 286]
+    ];
+
+    cliffCrowns.forEach((points, index) => {
+      const crown = this.add.polygon(0, 0, points, index % 2 === 0 ? 0x717c89 : 0x5b6673, 0.98);
+      crown.setOrigin(0, 0);
+      crown.setDepth(-169 + index);
+      crown.setStrokeStyle(4, 0xd7e2ec, 0.08);
+    });
+
+    const fissures = this.add.graphics();
+    fissures.setDepth(-118);
+    fissures.lineStyle(5, 0x993dff, 0.46);
+    fissures.beginPath();
+    fissures.moveTo(564, 488);
+    fissures.lineTo(638, 430);
+    fissures.lineTo(730, 398);
+    fissures.lineTo(818, 364);
+    fissures.lineTo(920, 332);
+    fissures.strokePath();
+    fissures.beginPath();
+    fissures.moveTo(620, 588);
+    fissures.lineTo(704, 520);
+    fissures.lineTo(790, 474);
+    fissures.lineTo(876, 444);
+    fissures.lineTo(962, 398);
+    fissures.strokePath();
+    fissures.beginPath();
+    fissures.moveTo(956, 526);
+    fissures.lineTo(1002, 458);
+    fissures.lineTo(1048, 396);
+    fissures.lineTo(1100, 336);
+    fissures.strokePath();
+    fissures.lineStyle(2, 0xe1bcff, 0.26);
+    fissures.beginPath();
+    fissures.moveTo(1048, 224);
+    fissures.lineTo(1020, 272);
+    fissures.lineTo(972, 320);
+    fissures.lineTo(926, 354);
+    fissures.strokePath();
+
+    const wallCracks = this.add.graphics();
+    wallCracks.setDepth(-166);
+    wallCracks.lineStyle(3, 0x202630, 0.34);
+    [
+      [506, 170, 526, 138, 548, 126, 564, 102],
+      [694, 132, 714, 110, 736, 98, 754, 82],
+      [878, 124, 900, 98, 924, 92, 952, 78],
+      [1032, 176, 1052, 146, 1074, 134, 1092, 114],
+      [1126, 300, 1100, 266, 1084, 240, 1060, 226]
+    ].forEach((line) => {
+      wallCracks.beginPath();
+      wallCracks.moveTo(line[0], line[1]);
+      wallCracks.lineTo(line[2], line[3]);
+      wallCracks.lineTo(line[4], line[5]);
+      wallCracks.lineTo(line[6], line[7]);
+      wallCracks.strokePath();
+    });
+
+    const crystals = this.add.graphics();
+    crystals.setDepth(-140);
+    crystals.fillStyle(0x7a3fe0, 0.85);
+    crystals.fillPoints(
+      [
+        new Phaser.Geom.Point(1038, 238),
+        new Phaser.Geom.Point(1068, 212),
+        new Phaser.Geom.Point(1080, 256),
+        new Phaser.Geom.Point(1052, 284)
+      ],
+      true
+    );
+    crystals.fillPoints(
+      [
+        new Phaser.Geom.Point(540, 226),
+        new Phaser.Geom.Point(566, 202),
+        new Phaser.Geom.Point(580, 244),
+        new Phaser.Geom.Point(552, 268)
+      ],
+      true
+    );
+    crystals.fillStyle(0x5631a9, 0.84);
+    crystals.fillPoints(
+      [
+        new Phaser.Geom.Point(954, 126),
+        new Phaser.Geom.Point(976, 108),
+        new Phaser.Geom.Point(986, 142),
+        new Phaser.Geom.Point(962, 156)
+      ],
+      true
+    );
 
     const mist = this.add.graphics();
     mist.setDepth(-80);
@@ -319,6 +661,22 @@ export class RoomGameScene extends Phaser.Scene {
     mist.fillEllipse(MAP_CENTER_X - 120, MAP_CENTER_Y + 70, 220, 80);
     mist.fillStyle(0x69d1ff, 0.06);
     mist.fillEllipse(MAP_CENTER_X + 120, MAP_CENTER_Y + 28, 240, 72);
+
+    const waterEdge = this.add.graphics();
+    waterEdge.setDepth(-119);
+    waterEdge.lineStyle(8, 0xae49ff, 0.18);
+    [
+      [470, 544, 562, 574, 656, 592, 764, 600, 876, 590, 992, 548],
+      [432, 462, 504, 424, 586, 396, 678, 366, 778, 342, 882, 318, 984, 268],
+      [832, 150, 924, 168, 1002, 206, 1058, 258]
+    ].forEach((path) => {
+      waterEdge.beginPath();
+      waterEdge.moveTo(path[0], path[1]);
+      for (let index = 2; index < path.length; index += 2) {
+        waterEdge.lineTo(path[index], path[index + 1]);
+      }
+      waterEdge.strokePath();
+    });
   }
 
   private updateVisualDepths() {
@@ -341,6 +699,25 @@ export class RoomGameScene extends Phaser.Scene {
     visual.aura.fillColor = player.team === "blue" ? 0x47b8ff : 0xff6d5e;
     visual.targetX = player.x;
     visual.targetY = player.y;
+    visual.facingAngle = player.facingAngle;
+    visual.sprite.setTexture(this.getFacingTextureKey(player.facingAngle));
+    visual.sprite.setFlipX(Math.cos(player.facingAngle) < -0.15);
+  }
+
+  private getFacingTextureKey(angle: number) {
+    const normalized = Phaser.Math.Angle.Normalize(angle);
+    const dx = Math.cos(normalized);
+    const dy = Math.sin(normalized);
+
+    if (dy < -0.55) {
+      return "mundo-brawler-back";
+    }
+
+    if (dy > 0.55) {
+      return "mundo-brawler-front";
+    }
+
+    return dx >= 0 ? "mundo-brawler-side-front" : "mundo-brawler-side-back";
   }
 
   private maybePlayHitEffect(player: GamePlayerSnapshot, visual: PlayerVisual) {

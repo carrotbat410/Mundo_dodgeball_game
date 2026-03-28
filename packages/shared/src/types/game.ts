@@ -10,6 +10,7 @@ export interface GamePlayerSnapshot {
   team: Team;
   x: number;
   y: number;
+  facingAngle: number;
   hp: number;
   alive: boolean;
   qCooldownRemaining: number;

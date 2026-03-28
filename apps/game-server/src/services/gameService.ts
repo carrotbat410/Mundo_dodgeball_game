@@ -23,28 +23,33 @@ import { createId } from "./ids";
 const ARENA_RADIUS = MAP_RADIUS - PLAYER_RADIUS;
 const PROJECTILE_TTL_SEC = 2;
 const RESULT_DELAY_SEC = 3;
+const CAST_LOCK_SEC = 0.5;
+const DIVIDER_NORMAL_X = Math.SQRT1_2;
+const DIVIDER_NORMAL_Y = Math.SQRT1_2;
+const DIVIDER_TANGENT_X = Math.SQRT1_2;
+const DIVIDER_TANGENT_Y = -Math.SQRT1_2;
 const BLUE_SPAWNS: Record<GameMode, readonly { x: number; y: number }[]> = {
-  "1v1": [{ x: MAP_CENTER_X - 140, y: MAP_CENTER_Y }],
+  "1v1": [{ x: MAP_CENTER_X - 112, y: MAP_CENTER_Y - 112 }],
   "2v2": [
-    { x: MAP_CENTER_X - 150, y: MAP_CENTER_Y - 78 },
-    { x: MAP_CENTER_X - 150, y: MAP_CENTER_Y + 78 }
+    { x: MAP_CENTER_X - 164, y: MAP_CENTER_Y - 54 },
+    { x: MAP_CENTER_X - 54, y: MAP_CENTER_Y - 164 }
   ],
   "3v3": [
-    { x: MAP_CENTER_X - 170, y: MAP_CENTER_Y - 96 },
-    { x: MAP_CENTER_X - 130, y: MAP_CENTER_Y },
-    { x: MAP_CENTER_X - 170, y: MAP_CENTER_Y + 96 }
+    { x: MAP_CENTER_X - 176, y: MAP_CENTER_Y - 36 },
+    { x: MAP_CENTER_X - 112, y: MAP_CENTER_Y - 112 },
+    { x: MAP_CENTER_X - 36, y: MAP_CENTER_Y - 176 }
   ]
 };
 const RED_SPAWNS: Record<GameMode, readonly { x: number; y: number }[]> = {
-  "1v1": [{ x: MAP_CENTER_X + 140, y: MAP_CENTER_Y }],
+  "1v1": [{ x: MAP_CENTER_X + 112, y: MAP_CENTER_Y + 112 }],
   "2v2": [
-    { x: MAP_CENTER_X + 150, y: MAP_CENTER_Y - 78 },
-    { x: MAP_CENTER_X + 150, y: MAP_CENTER_Y + 78 }
+    { x: MAP_CENTER_X + 54, y: MAP_CENTER_Y + 164 },
+    { x: MAP_CENTER_X + 164, y: MAP_CENTER_Y + 54 }
   ],
   "3v3": [
-    { x: MAP_CENTER_X + 170, y: MAP_CENTER_Y - 96 },
-    { x: MAP_CENTER_X + 130, y: MAP_CENTER_Y },
-    { x: MAP_CENTER_X + 170, y: MAP_CENTER_Y + 96 }
+    { x: MAP_CENTER_X + 36, y: MAP_CENTER_Y + 176 },
+    { x: MAP_CENTER_X + 112, y: MAP_CENTER_Y + 112 },
+    { x: MAP_CENTER_X + 176, y: MAP_CENTER_Y + 36 }
   ]
 };
 
@@ -61,27 +66,34 @@ function createGamePlayer(roomPlayer: RoomPlayer, x: number, y: number): GamePla
     team: roomPlayer.team,
     x,
     y,
+    facingAngle: roomPlayer.team === "blue" ? 0 : Math.PI,
     hp: 4,
     alive: true,
     qCooldownRemaining: 0,
+    castLockRemaining: 0,
     moveTargetX: x,
     moveTargetY: y
   };
 }
 
 function clampPointToTeamArena(team: Team, x: number, y: number) {
-  let dx = x - MAP_CENTER_X;
-  const minDx = team === "blue" ? -ARENA_RADIUS : PLAYER_RADIUS;
-  const maxDx = team === "blue" ? -PLAYER_RADIUS : ARENA_RADIUS;
+  const relativeX = x - MAP_CENTER_X;
+  const relativeY = y - MAP_CENTER_Y;
 
-  dx = Math.max(minDx, Math.min(maxDx, dx));
+  let normal = relativeX * DIVIDER_NORMAL_X + relativeY * DIVIDER_NORMAL_Y;
+  const tangent = relativeX * DIVIDER_TANGENT_X + relativeY * DIVIDER_TANGENT_Y;
 
-  const maxDy = Math.sqrt(Math.max(0, ARENA_RADIUS ** 2 - dx ** 2));
-  const dy = Math.max(-maxDy, Math.min(maxDy, y - MAP_CENTER_Y));
+  const minNormal = team === "blue" ? -ARENA_RADIUS : PLAYER_RADIUS;
+  const maxNormal = team === "blue" ? -PLAYER_RADIUS : ARENA_RADIUS;
+
+  normal = Math.max(minNormal, Math.min(maxNormal, normal));
+
+  const maxTangent = Math.sqrt(Math.max(0, ARENA_RADIUS ** 2 - normal ** 2));
+  const clampedTangent = Math.max(-maxTangent, Math.min(maxTangent, tangent));
 
   return {
-    x: MAP_CENTER_X + dx,
-    y: MAP_CENTER_Y + dy
+    x: MAP_CENTER_X + normal * DIVIDER_NORMAL_X + clampedTangent * DIVIDER_TANGENT_X,
+    y: MAP_CENTER_Y + normal * DIVIDER_NORMAL_Y + clampedTangent * DIVIDER_TANGENT_Y
   };
 }
 
@@ -254,6 +266,13 @@ export function setMoveTarget(roomId: string, socketId: string, targetX: number,
   }
 
   const nextTarget = clampPointToTeamArena(player.team, targetX, targetY);
+  const dx = nextTarget.x - player.x;
+  const dy = nextTarget.y - player.y;
+
+  if (Math.hypot(dx, dy) > 1) {
+    player.facingAngle = Math.atan2(dy, dx);
+  }
+
   player.moveTargetX = nextTarget.x;
   player.moveTargetY = nextTarget.y;
 }
@@ -280,7 +299,11 @@ export function castProjectile(roomId: string, socketId: string, targetX: number
   }
 
   const projectile = spawnProjectile(player, targetX, targetY);
+  player.facingAngle = Math.atan2(targetY - player.y, targetX - player.x);
   player.qCooldownRemaining = Q_COOLDOWN_SEC;
+  player.castLockRemaining = CAST_LOCK_SEC;
+  player.moveTargetX = player.x;
+  player.moveTargetY = player.y;
   game.projectiles.push(projectile);
 }
 
@@ -329,8 +352,13 @@ export function advanceGames(deltaSec: number) {
 
     for (const player of game.players) {
       player.qCooldownRemaining = Math.max(0, player.qCooldownRemaining - deltaSec);
+      player.castLockRemaining = Math.max(0, player.castLockRemaining - deltaSec);
 
       if (!player.alive || player.moveTargetX == null || player.moveTargetY == null) {
+        continue;
+      }
+
+      if (player.castLockRemaining > 0) {
         continue;
       }
 
@@ -352,6 +380,7 @@ export function advanceGames(deltaSec: number) {
         continue;
       }
 
+      player.facingAngle = Math.atan2(dy, dx);
       player.x += (dx / distance) * moveDistance;
       player.y += (dy / distance) * moveDistance;
     }
@@ -428,6 +457,7 @@ export function toGameStateSnapshot(game: Game): GameStateSnapshot {
       team: player.team,
       x: player.x,
       y: player.y,
+      facingAngle: player.facingAngle,
       hp: player.hp,
       alive: player.alive,
       qCooldownRemaining: player.qCooldownRemaining

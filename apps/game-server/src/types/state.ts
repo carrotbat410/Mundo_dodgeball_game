@@ -41,9 +41,11 @@ export interface GamePlayer {
   team: Team;
   x: number;
   y: number;
+  facingAngle: number;
   hp: number;
   alive: boolean;
   qCooldownRemaining: number;
+  castLockRemaining: number;
   moveTargetX: number | null;
   moveTargetY: number | null;
 }
