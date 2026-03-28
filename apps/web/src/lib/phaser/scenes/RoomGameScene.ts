@@ -14,6 +14,7 @@ interface PlayerVisual {
   container: Phaser.GameObjects.Container;
   label: Phaser.GameObjects.Text;
   hpSegments: Phaser.GameObjects.Rectangle[];
+  shadow: Phaser.GameObjects.Ellipse;
   aura: Phaser.GameObjects.Arc;
   sprite: Phaser.GameObjects.Image;
   targetX: number;
@@ -230,12 +231,15 @@ export class RoomGameScene extends Phaser.Scene {
       return existing;
     }
 
-    const aura = this.add.circle(0, 2, PLAYER_RADIUS + 4, player.team === "blue" ? 0x47b8ff : 0xff6d5e, 0.22);
+    const shadow = this.add.ellipse(0, 14, 34, 14, 0x02060b, 0.34);
+    shadow.setStrokeStyle(1, 0xffffff, 0.03);
+
+    const aura = this.add.circle(0, 4, PLAYER_RADIUS + 4, player.team === "blue" ? 0x47b8ff : 0xff6d5e, 0.18);
     aura.setStrokeStyle(3, player.team === "blue" ? 0x9fe6ff : 0xffb0a5, 0.58);
 
-    const sprite = this.add.image(0, 0, "mundo-brawler");
-    sprite.setScale(2.25);
-    sprite.setDisplayOrigin(16, 16);
+    const sprite = this.add.image(0, -2, "mundo-brawler");
+    sprite.setScale(2.35);
+    sprite.setDisplayOrigin(16, 24);
 
     const hpSegments = [-18, -6, 6, 18].map((offset) => {
       const segment = this.add.rectangle(offset, PLAYER_RADIUS + 16, 10, 8, 0xb9ff66, 1);
@@ -251,8 +255,8 @@ export class RoomGameScene extends Phaser.Scene {
     });
     label.setOrigin(0.5);
 
-    const container = this.add.container(player.x, player.y, [aura, sprite, ...hpSegments, label]);
-    const visual = { container, label, hpSegments, aura, sprite, targetX: player.x, targetY: player.y };
+    const container = this.add.container(player.x, player.y, [shadow, aura, sprite, ...hpSegments, label]);
+    const visual = { container, label, hpSegments, shadow, aura, sprite, targetX: player.x, targetY: player.y };
 
     this.players.set(player.playerId, visual);
     return visual;
@@ -264,6 +268,7 @@ export class RoomGameScene extends Phaser.Scene {
       segment.setFillStyle(index < player.hp ? 0xb9ff66 : 0x415064, index < player.hp ? 1 : 0.55);
     });
     visual.container.alpha = player.alive ? 1 : 0.4;
+    visual.shadow.alpha = player.alive ? 0.34 : 0.18;
     visual.aura.fillColor = player.team === "blue" ? 0x47b8ff : 0xff6d5e;
     visual.targetX = player.x;
     visual.targetY = player.y;
