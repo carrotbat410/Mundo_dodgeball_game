@@ -1,0 +1,32 @@
+<svg width="980" height="720" viewBox="0 0 980 720" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <g filter="url(#glow)" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M486 356 C528 330, 586 312, 656 300 C732 286, 786 264, 848 224" stroke="#b84cff" stroke-opacity="0.48" stroke-width="5"/>
+    <path d="M486 356 C448 390, 392 424, 320 448 C248 472, 190 500, 130 546" stroke="#b84cff" stroke-opacity="0.44" stroke-width="5"/>
+    <path d="M486 356 C538 392, 594 432, 664 468 C738 506, 802 538, 866 590" stroke="#ad42ff" stroke-opacity="0.42" stroke-width="4"/>
+    <path d="M486 356 C430 336, 372 312, 304 274 C236 236, 188 202, 142 154" stroke="#9b35ff" stroke-opacity="0.38" stroke-width="4"/>
+
+    <path d="M486 356 C474 298, 464 244, 446 178 C430 124, 402 82, 364 40" stroke="#9a34ff" stroke-opacity="0.28" stroke-width="3.5"/>
+    <path d="M486 356 C514 304, 544 248, 594 182 C636 126, 688 88, 744 58" stroke="#9a34ff" stroke-opacity="0.28" stroke-width="3.5"/>
+    <path d="M486 356 C500 418, 514 480, 550 546 C586 612, 630 648, 684 688" stroke="#a53dff" stroke-opacity="0.24" stroke-width="3.5"/>
+
+    <path d="M570 322 C604 306, 648 286, 690 256" stroke="#ecabff" stroke-opacity="0.18" stroke-width="2.5"/>
+    <path d="M402 396 C364 422, 324 450, 286 492" stroke="#ecabff" stroke-opacity="0.16" stroke-width="2.5"/>
+    <path d="M594 430 C634 456, 670 484, 716 520" stroke="#e598ff" stroke-opacity="0.16" stroke-width="2.5"/>
+    <path d="M390 300 C350 282, 312 258, 278 228" stroke="#e598ff" stroke-opacity="0.14" stroke-width="2.5"/>
+
+    <path d="M340 454 C372 434, 400 406, 426 378" stroke="#c86dff" stroke-opacity="0.18" stroke-width="2.5"/>
+    <path d="M650 474 C618 452, 592 424, 566 394" stroke="#c86dff" stroke-opacity="0.18" stroke-width="2.5"/>
+    <path d="M544 246 C526 280, 510 314, 496 344" stroke="#d37eff" stroke-opacity="0.16" stroke-width="2.5"/>
+    <path d="M438 478 C458 440, 472 404, 482 372" stroke="#d37eff" stroke-opacity="0.16" stroke-width="2.5"/>
+  </g>
+</svg>

@@ -58,7 +58,7 @@ export class RoomGameScene extends Phaser.Scene {
     this.load.image("mundo-brawler-side-front", "/sprites/mundo-brawler-side-front.svg");
     this.load.image("mundo-brawler-side-back", "/sprites/mundo-brawler-side-back.svg");
     this.load.image("cleaver", "/sprites/cleaver.svg");
-    this.load.image("baron-floor-corruption", "/sprites/baron-floor-corruption.svg");
+    this.load.image("baron-floor-cracks", "/sprites/baron-floor-cracks.svg");
     this.load.image("baron-surroundings", "/sprites/baron-surroundings.svg");
     this.load.image("pink-ward", "/sprites/pink-ward.svg");
   }
@@ -311,34 +311,30 @@ export class RoomGameScene extends Phaser.Scene {
     const water = this.add.graphics();
     water.setDepth(-120);
     water.fillStyle(0x091c2d, 0.98);
-    water.fillEllipse(MAP_CENTER_X, MAP_CENTER_Y + 34, MAP_RADIUS * 1.96, MAP_RADIUS * 1.3);
+    water.fillEllipse(MAP_CENTER_X, MAP_CENTER_Y + 26, MAP_RADIUS * 2.02, MAP_RADIUS * 1.92);
     water.fillStyle(0x0b2740, 0.92);
-    water.fillEllipse(MAP_CENTER_X, MAP_CENTER_Y + 26, MAP_RADIUS * 1.78, MAP_RADIUS * 1.14);
+    water.fillEllipse(MAP_CENTER_X, MAP_CENTER_Y + 24, MAP_RADIUS * 1.88, MAP_RADIUS * 1.74);
     water.fillStyle(0x103d61, 0.58);
-    water.fillEllipse(MAP_CENTER_X + 8, MAP_CENTER_Y + 20, MAP_RADIUS * 1.42, MAP_RADIUS * 0.88);
+    water.fillEllipse(MAP_CENTER_X + 8, MAP_CENTER_Y + 22, MAP_RADIUS * 1.56, MAP_RADIUS * 1.42);
     water.fillStyle(0x4b9ac5, 0.08);
-    water.fillEllipse(MAP_CENTER_X - 48, MAP_CENTER_Y + 10, MAP_RADIUS * 0.9, MAP_RADIUS * 0.36);
-    water.fillEllipse(MAP_CENTER_X + 82, MAP_CENTER_Y + 58, MAP_RADIUS * 0.72, MAP_RADIUS * 0.3);
+    water.fillEllipse(MAP_CENTER_X - 48, MAP_CENTER_Y + 6, MAP_RADIUS * 1.02, MAP_RADIUS * 0.52);
+    water.fillEllipse(MAP_CENTER_X + 82, MAP_CENTER_Y + 44, MAP_RADIUS * 0.88, MAP_RADIUS * 0.46);
 
     const floor = this.add.graphics();
     floor.setDepth(-110);
     floor.fillStyle(0x14263a, 0.9);
-    floor.fillEllipse(MAP_CENTER_X, MAP_CENTER_Y + 18, MAP_RADIUS * 1.88, MAP_RADIUS * 1.22);
+    floor.fillEllipse(MAP_CENTER_X, MAP_CENTER_Y + 22, MAP_RADIUS * 2.08, MAP_RADIUS * 1.96);
     floor.fillStyle(0x19293f, 0.64);
-    floor.fillEllipse(MAP_CENTER_X + 12, MAP_CENTER_Y + 26, MAP_RADIUS * 1.58, MAP_RADIUS * 1.02);
+    floor.fillEllipse(MAP_CENTER_X + 12, MAP_CENTER_Y + 30, MAP_RADIUS * 1.78, MAP_RADIUS * 1.62);
 
-    const corruption = this.add.image(MAP_CENTER_X - 8, MAP_CENTER_Y + 24, "baron-floor-corruption");
+    const corruption = this.add.image(MAP_CENTER_X - 8, MAP_CENTER_Y + 24, "baron-floor-cracks");
     corruption.setDepth(-101);
     corruption.setAlpha(0.92);
-    corruption.setDisplaySize(MAP_RADIUS * 2.56, MAP_RADIUS * 1.98);
+    corruption.setDisplaySize(MAP_RADIUS * 2.92, MAP_RADIUS * 2.58);
 
     const playableGlow = this.add.graphics();
     playableGlow.setDepth(-100);
-    playableGlow.fillStyle(0x8f32ff, 0.08);
-    playableGlow.fillEllipse(MAP_CENTER_X - 44, MAP_CENTER_Y + 34, MAP_RADIUS * 1.26, MAP_RADIUS * 0.74);
-    playableGlow.fillEllipse(MAP_CENTER_X + 72, MAP_CENTER_Y + 38, MAP_RADIUS * 1.34, MAP_RADIUS * 0.7);
-    playableGlow.fillStyle(0xc255ff, 0.07);
-    playableGlow.fillEllipse(MAP_CENTER_X + 10, MAP_CENTER_Y + 48, MAP_RADIUS * 1.62, MAP_RADIUS * 1.02);
+    playableGlow.fillEllipse(MAP_CENTER_X + 10, MAP_CENTER_Y + 44, MAP_RADIUS * 1.9, MAP_RADIUS * 1.54);
 
     const teamWashBlue = this.add.graphics();
     teamWashBlue.setDepth(-95);
@@ -395,16 +391,14 @@ export class RoomGameScene extends Phaser.Scene {
     const outerPlayableBorder = this.add.graphics();
     outerPlayableBorder.setDepth(-93);
     outerPlayableBorder.lineStyle(8, 0xb545ff, 0.24);
-    outerPlayableBorder.strokeEllipse(MAP_CENTER_X, MAP_CENTER_Y + 28, MAP_RADIUS * 1.92, MAP_RADIUS * 1.26);
+    outerPlayableBorder.strokeEllipse(MAP_CENTER_X, MAP_CENTER_Y + 24, MAP_RADIUS * 2.1, MAP_RADIUS * 2.02);
     outerPlayableBorder.lineStyle(18, 0xca72ff, 0.05);
-    outerPlayableBorder.strokeEllipse(MAP_CENTER_X, MAP_CENTER_Y + 28, MAP_RADIUS * 1.98, MAP_RADIUS * 1.32);
+    outerPlayableBorder.strokeEllipse(MAP_CENTER_X, MAP_CENTER_Y + 24, MAP_RADIUS * 2.18, MAP_RADIUS * 2.08);
 
     const innerRim = this.add.graphics();
     innerRim.setDepth(-121);
     innerRim.lineStyle(22, 0x0a1018, 0.32);
-    innerRim.strokeEllipse(MAP_CENTER_X, MAP_CENTER_Y + 18, MAP_RADIUS * 1.92, MAP_RADIUS * 1.24);
-    innerRim.lineStyle(5, 0xd068ff, 0.14);
-    innerRim.strokeEllipse(MAP_CENTER_X, MAP_CENTER_Y + 26, MAP_RADIUS * 1.82, MAP_RADIUS * 1.16);
+    innerRim.strokeEllipse(MAP_CENTER_X, MAP_CENTER_Y + 18, MAP_RADIUS * 2.08, MAP_RADIUS * 1.96);
 
     const continuousWallShadow = this.add.polygon(
       0,
@@ -621,6 +615,40 @@ export class RoomGameScene extends Phaser.Scene {
       wallCracks.lineTo(line[4], line[5]);
       wallCracks.lineTo(line[6], line[7]);
       wallCracks.strokePath();
+    });
+
+    const wallCorruption = this.add.graphics();
+    wallCorruption.setDepth(-165.5);
+    wallCorruption.lineStyle(4, 0xa93cff, 0.28);
+    [
+      [498, 206, 542, 188, 586, 176, 620, 158],
+      [670, 150, 724, 136, 782, 126, 836, 130],
+      [900, 154, 950, 168, 996, 188, 1034, 218],
+      [1066, 266, 1096, 306, 1110, 352, 1108, 404],
+      [1036, 470, 996, 514, 946, 546, 888, 566],
+      [560, 548, 612, 568, 670, 580, 734, 582]
+    ].forEach((path) => {
+      wallCorruption.beginPath();
+      wallCorruption.moveTo(path[0], path[1]);
+      for (let index = 2; index < path.length; index += 2) {
+        wallCorruption.lineTo(path[index], path[index + 1]);
+      }
+      wallCorruption.strokePath();
+    });
+    wallCorruption.lineStyle(2, 0xe09dff, 0.18);
+    [
+      [526, 196, 554, 184, 582, 176],
+      [720, 138, 754, 130, 790, 128],
+      [946, 172, 980, 186, 1010, 206],
+      [1082, 296, 1098, 324, 1104, 356],
+      [982, 528, 952, 548, 920, 560]
+    ].forEach((path) => {
+      wallCorruption.beginPath();
+      wallCorruption.moveTo(path[0], path[1]);
+      for (let index = 2; index < path.length; index += 2) {
+        wallCorruption.lineTo(path[index], path[index + 1]);
+      }
+      wallCorruption.strokePath();
     });
 
     const crystals = this.add.graphics();
