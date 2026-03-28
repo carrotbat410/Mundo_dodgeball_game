@@ -1,7 +1,7 @@
 import type { Server, Socket } from "socket.io";
 import type { ClientToServerEvents, ServerToClientEvents } from "@mundo/shared";
-import { castProjectile, getGameByRoomId, setMoveTarget, toGameStateSnapshot } from "../../services/gameService";
-import { serverState } from "../../state/serverState";
+import { castProjectile, getGameByRoomId, setMoveTarget, toGameStateSnapshot } from "../../services/gameService.js";
+import { serverState } from "../../state/serverState.js";
 
 type GameSocket = Socket<ClientToServerEvents, ServerToClientEvents>;
 type GameIo = Server<ClientToServerEvents, ServerToClientEvents>;

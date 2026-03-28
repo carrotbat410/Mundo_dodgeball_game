@@ -16,9 +16,9 @@ import {
   type RoomPlayer,
   type Team
 } from "@mundo/shared";
-import { serverState } from "../state/serverState";
-import type { Game, GamePlayer, Projectile, Room } from "../types/state";
-import { createId } from "./ids";
+import { serverState } from "../state/serverState.js";
+import type { Game, GamePlayer, Projectile, Room } from "../types/state.js";
+import { createId } from "./ids.js";
 
 const ARENA_RADIUS = MAP_RADIUS - PLAYER_RADIUS;
 const PROJECTILE_TTL_SEC = 2;

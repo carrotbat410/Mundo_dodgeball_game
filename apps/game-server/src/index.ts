@@ -1,5 +1,5 @@
-import { createGameServer } from "./server";
-import { env } from "./config/env";
+import { createGameServer } from "./server.js";
+import { env } from "./config/env.js";
 
 const { httpServer } = createGameServer();
 

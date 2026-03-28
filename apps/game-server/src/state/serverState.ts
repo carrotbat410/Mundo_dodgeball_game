@@ -1,4 +1,4 @@
-import type { ServerState } from "../types/state";
+import type { ServerState } from "../types/state.js";
 
 export const serverState: ServerState = {
   sessions: new Map(),

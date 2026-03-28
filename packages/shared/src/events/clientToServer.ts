@@ -1,5 +1,5 @@
-import type { GameMode } from "../game/modes";
-import type { Team } from "../game/teams";
+import type { GameMode } from "../game/modes.js";
+import type { Team } from "../game/teams.js";
 
 export interface RoomSettingsPayload {
   name: string;

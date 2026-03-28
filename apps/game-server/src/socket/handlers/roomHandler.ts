@@ -1,6 +1,6 @@
 import type { Server, Socket } from "socket.io";
 import type { ClientToServerEvents, ServerToClientEvents } from "@mundo/shared";
-import { serverState } from "../../state/serverState";
+import { serverState } from "../../state/serverState.js";
 import {
   canJoinRoom,
   canStartRoom,
@@ -14,9 +14,9 @@ import {
   setReadyState,
   toRoomState,
   updateRoomSettings
-} from "../../services/roomService";
-import { createGameForRoom, removeGameByRoomId, syncGamePlayersForRoom } from "../../services/gameService";
-import { emitLobbyList } from "./lobbyHandler";
+} from "../../services/roomService.js";
+import { createGameForRoom, removeGameByRoomId, syncGamePlayersForRoom } from "../../services/gameService.js";
+import { emitLobbyList } from "./lobbyHandler.js";
 
 type GameSocket = Socket<ClientToServerEvents, ServerToClientEvents>;
 type GameIo = Server<ClientToServerEvents, ServerToClientEvents>;

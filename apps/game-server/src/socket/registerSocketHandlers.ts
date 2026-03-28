@@ -1,10 +1,10 @@
 import type { Server, Socket } from "socket.io";
 import type { ClientToServerEvents, ServerToClientEvents } from "@mundo/shared";
-import { registerGuestHandler } from "./handlers/guestHandler";
-import { registerLobbyHandler } from "./handlers/lobbyHandler";
-import { handleRoomDisconnect, registerRoomHandler } from "./handlers/roomHandler";
-import { registerGameHandler } from "./handlers/gameHandler";
-import { serverState } from "../state/serverState";
+import { registerGuestHandler } from "./handlers/guestHandler.js";
+import { registerLobbyHandler } from "./handlers/lobbyHandler.js";
+import { handleRoomDisconnect, registerRoomHandler } from "./handlers/roomHandler.js";
+import { registerGameHandler } from "./handlers/gameHandler.js";
+import { serverState } from "../state/serverState.js";
 
 type GameSocket = Socket<ClientToServerEvents, ServerToClientEvents>;
 type GameIo = Server<ClientToServerEvents, ServerToClientEvents>;

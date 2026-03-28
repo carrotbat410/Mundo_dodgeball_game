@@ -11,9 +11,9 @@ import {
   type Session,
   type Team
 } from "@mundo/shared";
-import type { Room } from "../types/state";
-import { createId, createRoomCode } from "./ids";
-import { serverState } from "../state/serverState";
+import type { Room } from "../types/state.js";
+import { createId, createRoomCode } from "./ids.js";
+import { serverState } from "../state/serverState.js";
 
 function countTeamPlayers(room: Room, team: Team) {
   return room.players.filter((player) => player.team === team).length;

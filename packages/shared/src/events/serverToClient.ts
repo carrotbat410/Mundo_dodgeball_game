@@ -1,5 +1,5 @@
-import type { GameStateSnapshot } from "../types/game";
-import type { RoomState, RoomSummary } from "../types/room";
+import type { GameStateSnapshot } from "../types/game.js";
+import type { RoomState, RoomSummary } from "../types/room.js";
 
 export interface ServerToClientEvents {
   "guest:entered": (payload: {

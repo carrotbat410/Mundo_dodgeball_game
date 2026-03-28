@@ -1,9 +1,9 @@
 import type { Server } from "socket.io";
 import type { ClientToServerEvents, ServerToClientEvents } from "@mundo/shared";
-import { emitLobbyList } from "../socket/handlers/lobbyHandler";
-import { serverState } from "../state/serverState";
-import { advanceGames, toGameStateSnapshot } from "../services/gameService";
-import { toRoomState } from "../services/roomService";
+import { emitLobbyList } from "../socket/handlers/lobbyHandler.js";
+import { serverState } from "../state/serverState.js";
+import { advanceGames, toGameStateSnapshot } from "../services/gameService.js";
+import { toRoomState } from "../services/roomService.js";
 
 type GameIo = Server<ClientToServerEvents, ServerToClientEvents>;
 
