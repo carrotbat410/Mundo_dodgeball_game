@@ -232,6 +232,7 @@ export default function RoomPage() {
   const [error, setError] = useState("");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
+  const isChatComposingRef = useRef(false);
   const locale = useMemo(() => detectLocale(), []);
   const [settingsDraft, setSettingsDraft] = useState<RoomSettingsDraft>({
     name: "",
@@ -465,8 +466,19 @@ export default function RoomPage() {
             <input
               value={message}
               onChange={(event) => setMessage(event.target.value)}
+              onCompositionStart={() => {
+                isChatComposingRef.current = true;
+              }}
+              onCompositionEnd={() => {
+                isChatComposingRef.current = false;
+              }}
               onKeyDown={(event) => {
+                if (event.nativeEvent.isComposing || isChatComposingRef.current) {
+                  return;
+                }
+
                 if (event.key === "Enter") {
+                  event.preventDefault();
                   handleSendChat();
                 }
               }}

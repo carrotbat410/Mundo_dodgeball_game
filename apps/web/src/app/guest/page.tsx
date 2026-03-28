@@ -2,7 +2,7 @@
 
 import { MAX_NICKNAME_LENGTH } from "@mundo/shared";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { t, tf } from "../../lib/i18n/messages";
 import { getSocket } from "../../lib/socket/client";
 import { saveGuestSession } from "../../lib/session/guestSession";
@@ -25,6 +25,10 @@ export default function GuestPage() {
   useEffect(() => {
     setLocale(detectLocale());
   }, []);
+
+  const applyNickname = (value: string) => {
+    setNickname(value.slice(0, MAX_NICKNAME_LENGTH));
+  };
 
   useEffect(() => {
     const socket = getSocket();
@@ -51,10 +55,8 @@ export default function GuestPage() {
     };
   }, [router]);
 
-  const canSubmit = useMemo(() => {
-    const trimmed = nickname.trim();
-    return trimmed.length > 0 && trimmed.length <= MAX_NICKNAME_LENGTH && !isSubmitting;
-  }, [nickname, isSubmitting]);
+  const trimmedNickname = nickname.trim();
+  const canSubmit = trimmedNickname.length > 0 && trimmedNickname.length <= MAX_NICKNAME_LENGTH && !isSubmitting;
 
   const handleSubmit = () => {
     const trimmed = nickname.trim();
@@ -117,7 +119,10 @@ export default function GuestPage() {
           <span>{t(locale, "guest.nickname")}</span>
           <input
             value={nickname}
-            onChange={(event) => setNickname(event.target.value.slice(0, MAX_NICKNAME_LENGTH))}
+            maxLength={MAX_NICKNAME_LENGTH}
+            onChange={(event) => applyNickname(event.target.value)}
+            onInput={(event) => applyNickname(event.currentTarget.value)}
+            onCompositionEnd={(event) => applyNickname(event.currentTarget.value)}
             onKeyDown={(event) => {
               if (event.key === "Enter") {
                 handleSubmit();
