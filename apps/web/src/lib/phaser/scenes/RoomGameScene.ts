@@ -82,53 +82,23 @@ export class RoomGameScene extends Phaser.Scene {
       this.isQHeld = false;
     });
 
-    const graphics = this.add.graphics();
-    graphics.fillStyle(0x0b1930, 0.92);
-    graphics.lineStyle(6, 0x7cd8ff, 0.22);
-    graphics.fillCircle(MAP_CENTER_X, MAP_CENTER_Y, MAP_RADIUS);
-    graphics.strokeCircle(MAP_CENTER_X, MAP_CENTER_Y, MAP_RADIUS);
+    this.drawBaronPit(width, height);
 
-    graphics.lineStyle(4, 0xffffff, 0.18);
-    graphics.beginPath();
-    graphics.moveTo(MAP_CENTER_X, MAP_CENTER_Y - MAP_RADIUS);
-    graphics.lineTo(MAP_CENTER_X, MAP_CENTER_Y + MAP_RADIUS);
-    graphics.strokePath();
-
-    graphics.fillStyle(0x47b8ff, 0.12);
-    graphics.slice(
-      MAP_CENTER_X,
-      MAP_CENTER_Y,
-      MAP_RADIUS - 10,
-      Phaser.Math.DegToRad(90),
-      Phaser.Math.DegToRad(270),
-      false
-    );
-    graphics.fillPath();
-
-    graphics.fillStyle(0xff6d5e, 0.12);
-    graphics.slice(
-      MAP_CENTER_X,
-      MAP_CENTER_Y,
-      MAP_RADIUS - 10,
-      Phaser.Math.DegToRad(-90),
-      Phaser.Math.DegToRad(90),
-      false
-    );
-    graphics.fillPath();
-
-    const title = this.add.text(width / 2, 88, this.copy.title, {
+    const title = this.add.text(width / 2, 84, this.copy.title, {
       fontFamily: "Pretendard, Noto Sans KR, sans-serif",
       fontSize: "34px",
       color: "#f4f7fb"
     });
     title.setOrigin(0.5);
+    title.setDepth(1000);
 
-    this.countdownText = this.add.text(width / 2, 136, "", {
+    this.countdownText = this.add.text(width / 2, 132, "", {
       fontFamily: "Pretendard, Noto Sans KR, sans-serif",
       fontSize: "26px",
       color: "#b9ff66"
     });
     this.countdownText.setOrigin(0.5);
+    this.countdownText.setDepth(1000);
 
     this.statusText = this.add.text(width / 2, height - 56, this.copy.waiting, {
       fontFamily: "Pretendard, Noto Sans KR, sans-serif",
@@ -136,6 +106,7 @@ export class RoomGameScene extends Phaser.Scene {
       color: "#9fb2c8"
     });
     this.statusText.setOrigin(0.5);
+    this.statusText.setDepth(1000);
   }
 
   update(_time: number, delta: number) {
@@ -150,6 +121,8 @@ export class RoomGameScene extends Phaser.Scene {
       visual.sprite.x = Phaser.Math.Linear(visual.sprite.x, visual.targetX, lerpFactor);
       visual.sprite.y = Phaser.Math.Linear(visual.sprite.y, visual.targetY, lerpFactor);
     }
+
+    this.updateVisualDepths();
   }
 
   updateSnapshot(snapshot: GameStateSnapshot) {
@@ -260,6 +233,102 @@ export class RoomGameScene extends Phaser.Scene {
 
     this.players.set(player.playerId, visual);
     return visual;
+  }
+
+  private drawBaronPit(width: number, height: number) {
+    const bg = this.add.graphics();
+    bg.setDepth(-200);
+    bg.fillGradientStyle(0x081019, 0x081019, 0x132334, 0x132334, 1);
+    bg.fillRect(0, 0, width, height);
+
+    const ravine = this.add.graphics();
+    ravine.setDepth(-180);
+    ravine.fillStyle(0x0b1018, 0.96);
+    ravine.fillEllipse(MAP_CENTER_X, MAP_CENTER_Y + 18, MAP_RADIUS * 2.4, MAP_RADIUS * 1.82);
+    ravine.fillStyle(0x101720, 0.92);
+    ravine.fillEllipse(MAP_CENTER_X, MAP_CENTER_Y + 8, MAP_RADIUS * 2.16, MAP_RADIUS * 1.56);
+
+    const cliff = this.add.graphics();
+    cliff.setDepth(-160);
+    cliff.fillStyle(0x2f3844, 1);
+    cliff.fillEllipse(MAP_CENTER_X, MAP_CENTER_Y - 4, MAP_RADIUS * 2.04, MAP_RADIUS * 1.4);
+    cliff.fillStyle(0x1c2530, 1);
+    cliff.fillEllipse(MAP_CENTER_X, MAP_CENTER_Y + 6, MAP_RADIUS * 1.92, MAP_RADIUS * 1.28);
+    cliff.lineStyle(10, 0x596779, 0.28);
+    cliff.strokeEllipse(MAP_CENTER_X, MAP_CENTER_Y - 2, MAP_RADIUS * 2.02, MAP_RADIUS * 1.38);
+    cliff.lineStyle(4, 0xb7cad8, 0.08);
+    cliff.strokeEllipse(MAP_CENTER_X, MAP_CENTER_Y - 12, MAP_RADIUS * 1.82, MAP_RADIUS * 1.16);
+
+    const water = this.add.graphics();
+    water.setDepth(-120);
+    water.fillStyle(0x0b2740, 0.96);
+    water.fillEllipse(MAP_CENTER_X, MAP_CENTER_Y + 26, MAP_RADIUS * 1.56, MAP_RADIUS * 1.02);
+    water.fillStyle(0x103d61, 0.68);
+    water.fillEllipse(MAP_CENTER_X, MAP_CENTER_Y + 18, MAP_RADIUS * 1.2, MAP_RADIUS * 0.7);
+    water.fillStyle(0x4b9ac5, 0.1);
+    water.fillEllipse(MAP_CENTER_X - 36, MAP_CENTER_Y + 8, MAP_RADIUS * 0.7, MAP_RADIUS * 0.28);
+    water.fillEllipse(MAP_CENTER_X + 62, MAP_CENTER_Y + 42, MAP_RADIUS * 0.52, MAP_RADIUS * 0.22);
+
+    const floor = this.add.graphics();
+    floor.setDepth(-110);
+    floor.fillStyle(0x12273a, 0.84);
+    floor.fillEllipse(MAP_CENTER_X, MAP_CENTER_Y + 10, MAP_RADIUS * 1.64, MAP_RADIUS * 1.06);
+    floor.lineStyle(8, 0x7bdcff, 0.12);
+    floor.strokeEllipse(MAP_CENTER_X, MAP_CENTER_Y + 8, MAP_RADIUS * 1.62, MAP_RADIUS * 1.02);
+
+    const divider = this.add.graphics();
+    divider.setDepth(-100);
+    divider.lineStyle(5, 0xf1f5fb, 0.16);
+    divider.beginPath();
+    divider.moveTo(MAP_CENTER_X, MAP_CENTER_Y - MAP_RADIUS * 0.56);
+    divider.lineTo(MAP_CENTER_X, MAP_CENTER_Y + MAP_RADIUS * 0.56);
+    divider.strokePath();
+
+    const blueTint = this.add.graphics();
+    blueTint.setDepth(-90);
+    blueTint.fillStyle(0x47b8ff, 0.08);
+    blueTint.slice(MAP_CENTER_X, MAP_CENTER_Y + 10, MAP_RADIUS * 0.82, Phaser.Math.DegToRad(90), Phaser.Math.DegToRad(270), false);
+    blueTint.fillPath();
+
+    const redTint = this.add.graphics();
+    redTint.setDepth(-90);
+    redTint.fillStyle(0xff6d5e, 0.08);
+    redTint.slice(MAP_CENTER_X, MAP_CENTER_Y + 10, MAP_RADIUS * 0.82, Phaser.Math.DegToRad(-90), Phaser.Math.DegToRad(90), false);
+    redTint.fillPath();
+
+    const rockColor = [0x5b6676, 0x444d59, 0x2f3741];
+    const rocks = [
+      [490, 180, 560, 130, 600, 200, 548, 236],
+      [1040, 156, 1108, 188, 1064, 260, 1000, 218],
+      [438, 556, 514, 512, 548, 590, 470, 626],
+      [1088, 540, 1162, 510, 1196, 596, 1120, 640],
+      [630, 92, 700, 78, 726, 136, 650, 154],
+      [930, 80, 1008, 102, 972, 160, 904, 136]
+    ];
+
+    rocks.forEach((points, index) => {
+      const polygon = this.add.polygon(0, 0, points, rockColor[index % rockColor.length], 0.9);
+      polygon.setOrigin(0, 0);
+      polygon.setDepth(-170 + index);
+      polygon.setStrokeStyle(3, 0xd6dee8, 0.05);
+    });
+
+    const mist = this.add.graphics();
+    mist.setDepth(-80);
+    mist.fillStyle(0x8c5cff, 0.08);
+    mist.fillEllipse(MAP_CENTER_X - 120, MAP_CENTER_Y + 70, 220, 80);
+    mist.fillStyle(0x69d1ff, 0.06);
+    mist.fillEllipse(MAP_CENTER_X + 120, MAP_CENTER_Y + 28, 240, 72);
+  }
+
+  private updateVisualDepths() {
+    for (const visual of this.players.values()) {
+      visual.container.setDepth(200 + visual.container.y);
+    }
+
+    for (const visual of this.projectiles.values()) {
+      visual.sprite.setDepth(210 + visual.sprite.y);
+    }
   }
 
   private updatePlayerVisual(visual: PlayerVisual, player: GamePlayerSnapshot) {
