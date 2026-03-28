@@ -14,12 +14,14 @@ interface PlayerVisual {
   container: Phaser.GameObjects.Container;
   label: Phaser.GameObjects.Text;
   hpSegments: Phaser.GameObjects.Rectangle[];
+  aura: Phaser.GameObjects.Arc;
+  sprite: Phaser.GameObjects.Image;
   targetX: number;
   targetY: number;
 }
 
 interface ProjectileVisual {
-  circle: Phaser.GameObjects.Arc;
+  sprite: Phaser.GameObjects.Image;
   targetX: number;
   targetY: number;
 }
@@ -46,6 +48,11 @@ export class RoomGameScene extends Phaser.Scene {
 
   setCastHandler(handler: (x: number, y: number) => void) {
     this.onCastCommand = handler;
+  }
+
+  preload() {
+    this.load.image("mundo-brawler", "/sprites/mundo-brawler.svg");
+    this.load.image("cleaver", "/sprites/cleaver.svg");
   }
 
   create() {
@@ -139,8 +146,8 @@ export class RoomGameScene extends Phaser.Scene {
     }
 
     for (const visual of this.projectiles.values()) {
-      visual.circle.x = Phaser.Math.Linear(visual.circle.x, visual.targetX, lerpFactor);
-      visual.circle.y = Phaser.Math.Linear(visual.circle.y, visual.targetY, lerpFactor);
+      visual.sprite.x = Phaser.Math.Linear(visual.sprite.x, visual.targetX, lerpFactor);
+      visual.sprite.y = Phaser.Math.Linear(visual.sprite.y, visual.targetY, lerpFactor);
     }
   }
 
@@ -174,7 +181,7 @@ export class RoomGameScene extends Phaser.Scene {
         continue;
       }
 
-      visual.circle.destroy();
+      visual.sprite.destroy();
       this.projectiles.delete(projectileId);
     }
 
@@ -183,22 +190,22 @@ export class RoomGameScene extends Phaser.Scene {
 
       if (!visual) {
         this.playCastEffect(projectile.x, projectile.y, projectile.team === "blue" ? 0x9fe6ff : 0xffc2bb);
-        const circle = this.add.circle(
-          projectile.x,
-          projectile.y,
-          PROJECTILE_RADIUS,
-          projectile.team === "blue" ? 0x9fe6ff : 0xffc2bb,
-          1
-        );
-        circle.setStrokeStyle(2, 0xffffff, 0.35);
+        const sprite = this.add.image(projectile.x, projectile.y, "cleaver");
+        sprite.setScale(1.75);
+        sprite.setTint(projectile.team === "blue" ? 0xcff3ff : 0xffd3cb);
         visual = {
-          circle,
+          sprite,
           targetX: projectile.x,
           targetY: projectile.y
         };
         this.projectiles.set(projectile.projectileId, visual);
       }
 
+      const dx = projectile.x - visual.sprite.x;
+      const dy = projectile.y - visual.sprite.y;
+      if (Math.abs(dx) > 0.01 || Math.abs(dy) > 0.01) {
+        visual.sprite.setRotation(Math.atan2(dy, dx));
+      }
       visual.targetX = projectile.x;
       visual.targetY = projectile.y;
     });
@@ -223,8 +230,12 @@ export class RoomGameScene extends Phaser.Scene {
       return existing;
     }
 
-    const body = this.add.circle(0, 0, PLAYER_RADIUS, player.team === "blue" ? 0x47b8ff : 0xff6d5e, 0.94);
-    body.setStrokeStyle(4, 0xf4f7fb, 0.65);
+    const aura = this.add.circle(0, 2, PLAYER_RADIUS + 4, player.team === "blue" ? 0x47b8ff : 0xff6d5e, 0.22);
+    aura.setStrokeStyle(3, player.team === "blue" ? 0x9fe6ff : 0xffb0a5, 0.58);
+
+    const sprite = this.add.image(0, 0, "mundo-brawler");
+    sprite.setScale(2.25);
+    sprite.setDisplayOrigin(16, 16);
 
     const hpSegments = [-18, -6, 6, 18].map((offset) => {
       const segment = this.add.rectangle(offset, PLAYER_RADIUS + 16, 10, 8, 0xb9ff66, 1);
@@ -240,8 +251,8 @@ export class RoomGameScene extends Phaser.Scene {
     });
     label.setOrigin(0.5);
 
-    const container = this.add.container(player.x, player.y, [body, ...hpSegments, label]);
-    const visual = { container, label, hpSegments, targetX: player.x, targetY: player.y };
+    const container = this.add.container(player.x, player.y, [aura, sprite, ...hpSegments, label]);
+    const visual = { container, label, hpSegments, aura, sprite, targetX: player.x, targetY: player.y };
 
     this.players.set(player.playerId, visual);
     return visual;
@@ -253,6 +264,7 @@ export class RoomGameScene extends Phaser.Scene {
       segment.setFillStyle(index < player.hp ? 0xb9ff66 : 0x415064, index < player.hp ? 1 : 0.55);
     });
     visual.container.alpha = player.alive ? 1 : 0.4;
+    visual.aura.fillColor = player.team === "blue" ? 0x47b8ff : 0xff6d5e;
     visual.targetX = player.x;
     visual.targetY = player.y;
   }

@@ -38,8 +38,8 @@ export function createRoomGame(
       autoCenter: Phaser.Scale.CENTER_BOTH
     },
     render: {
-      antialias: true,
-      pixelArt: false
+      antialias: false,
+      pixelArt: true
     }
   });
 
