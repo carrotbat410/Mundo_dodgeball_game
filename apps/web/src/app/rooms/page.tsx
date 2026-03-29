@@ -24,6 +24,7 @@ export default function RoomsPage() {
     const session = getGuestSession();
 
     if (!session) {
+      window.alert(t(locale, "rooms.sessionExpired"));
       router.replace("/guest");
       return;
     }
@@ -45,6 +46,12 @@ export default function RoomsPage() {
 
     const handleError = (payload: { code: string; message: string }) => {
       setError(payload.message);
+
+      if (payload.code === "SESSION_NOT_FOUND" || payload.code === "UNAUTHORIZED") {
+        window.alert(t(locale, "rooms.sessionExpired"));
+        router.replace("/guest");
+        return;
+      }
 
       if (payload.code === "PASSWORD_REQUIRED") {
         const input = window.prompt(t(locale, "rooms.promptPassword"));

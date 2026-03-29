@@ -26,6 +26,7 @@
   "rooms.codePlaceholder": "코드 입력",
   "rooms.playingHint": "게임중 방은 목록에 표시만 하고 입장은 막습니다.",
   "rooms.promptPassword": "비밀번호를 입력해주세요.",
+  "rooms.sessionExpired": "세션이 없거나 만료되었습니다. 다시 입장해주세요.",
   "rooms.errorRoomName": "방 이름은 1자 이상 {max}자 이하로 입력해주세요.",
   "rooms.errorPasswordLength": "비밀번호는 {min}자 이상 {max}자 이하로 입력해주세요.",
   "rooms.errorPlaying": "게임중 방은 입장할 수 없습니다.",
