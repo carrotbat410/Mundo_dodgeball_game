@@ -14,3 +14,7 @@
 - `main`: 배포 브랜치
 
 `develop`에서 개발 후 `main`에 머지하면 배포합니다.
+
+## 서버 실행 명령어
+pnpm dev:game-server
+pnpm dev:web
