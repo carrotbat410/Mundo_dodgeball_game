@@ -29,6 +29,8 @@ interface ProjectileVisual {
   targetX: number;
   targetY: number;
   spinDirection: number;
+  baseRotation: number;
+  spinRotation: number;
 }
 
 export class RoomGameScene extends Phaser.Scene {
@@ -141,7 +143,8 @@ export class RoomGameScene extends Phaser.Scene {
     for (const visual of this.projectiles.values()) {
       visual.sprite.x = this.moveTowards(visual.sprite.x, visual.targetX, projectileStep);
       visual.sprite.y = this.moveTowards(visual.sprite.y, visual.targetY, projectileStep);
-      visual.sprite.rotation += visual.spinDirection * delta * 0.02;
+      visual.spinRotation += visual.spinDirection * delta * 0.012;
+      visual.sprite.rotation = visual.baseRotation + visual.spinRotation;
     }
 
     this.updateVisualDepths();
@@ -193,15 +196,17 @@ export class RoomGameScene extends Phaser.Scene {
           sprite,
           targetX: projectile.x,
           targetY: projectile.y,
-          spinDirection: projectile.team === "blue" ? 1 : -1
+          spinDirection: projectile.team === "blue" ? 1 : -1,
+          baseRotation: 0,
+          spinRotation: 0
         };
         this.projectiles.set(projectile.projectileId, visual);
       }
 
-      const dx = projectile.x - visual.sprite.x;
-      const dy = projectile.y - visual.sprite.y;
+      const dx = projectile.x - visual.targetX;
+      const dy = projectile.y - visual.targetY;
       if (Math.abs(dx) > 0.01 || Math.abs(dy) > 0.01) {
-        visual.sprite.setRotation(Math.atan2(dy, dx));
+        visual.baseRotation = Math.atan2(dy, dx);
       }
       visual.targetX = projectile.x;
       visual.targetY = projectile.y;
