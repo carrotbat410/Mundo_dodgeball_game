@@ -3,8 +3,10 @@ import {
   MAP_CENTER_X,
   MAP_CENTER_Y,
   MAP_RADIUS,
+  PLAYER_MOVE_SPEED,
   PLAYER_RADIUS,
   PROJECTILE_RADIUS,
+  PROJECTILE_SPEED,
   type GamePlayerSnapshot,
   type GameStateSnapshot
 } from "@mundo/shared";
@@ -26,6 +28,7 @@ interface ProjectileVisual {
   sprite: Phaser.GameObjects.Image;
   targetX: number;
   targetY: number;
+  spinDirection: number;
 }
 
 export class RoomGameScene extends Phaser.Scene {
@@ -42,6 +45,16 @@ export class RoomGameScene extends Phaser.Scene {
   constructor(copy: RoomGameCopy) {
     super("room-game-scene");
     this.copy = copy;
+  }
+
+  private moveTowards(current: number, target: number, maxDelta: number) {
+    const delta = target - current;
+
+    if (Math.abs(delta) <= maxDelta) {
+      return target;
+    }
+
+    return current + Math.sign(delta) * maxDelta;
   }
 
   setMoveHandler(handler: (x: number, y: number) => void) {
@@ -117,16 +130,18 @@ export class RoomGameScene extends Phaser.Scene {
   }
 
   update(_time: number, delta: number) {
-    const lerpFactor = Math.min(1, delta / 1000 * 14);
+    const playerStep = PLAYER_MOVE_SPEED * 1.35 * (delta / 1000);
+    const projectileStep = PROJECTILE_SPEED * 1.15 * (delta / 1000);
 
     for (const visual of this.players.values()) {
-      visual.container.x = Phaser.Math.Linear(visual.container.x, visual.targetX, lerpFactor);
-      visual.container.y = Phaser.Math.Linear(visual.container.y, visual.targetY, lerpFactor);
+      visual.container.x = this.moveTowards(visual.container.x, visual.targetX, playerStep);
+      visual.container.y = this.moveTowards(visual.container.y, visual.targetY, playerStep);
     }
 
     for (const visual of this.projectiles.values()) {
-      visual.sprite.x = Phaser.Math.Linear(visual.sprite.x, visual.targetX, lerpFactor);
-      visual.sprite.y = Phaser.Math.Linear(visual.sprite.y, visual.targetY, lerpFactor);
+      visual.sprite.x = this.moveTowards(visual.sprite.x, visual.targetX, projectileStep);
+      visual.sprite.y = this.moveTowards(visual.sprite.y, visual.targetY, projectileStep);
+      visual.sprite.rotation += visual.spinDirection * delta * 0.02;
     }
 
     this.updateVisualDepths();
@@ -172,12 +187,13 @@ export class RoomGameScene extends Phaser.Scene {
       if (!visual) {
         this.playCastEffect(projectile.x, projectile.y, projectile.team === "blue" ? 0x9fe6ff : 0xffc2bb);
         const sprite = this.add.image(projectile.x, projectile.y, "cleaver");
-        sprite.setScale(1.75);
+        sprite.setScale(1.95);
         sprite.setTint(projectile.team === "blue" ? 0xcff3ff : 0xffd3cb);
         visual = {
           sprite,
           targetX: projectile.x,
-          targetY: projectile.y
+          targetY: projectile.y,
+          spinDirection: projectile.team === "blue" ? 1 : -1
         };
         this.projectiles.set(projectile.projectileId, visual);
       }
@@ -211,27 +227,27 @@ export class RoomGameScene extends Phaser.Scene {
       return existing;
     }
 
-    const shadow = this.add.ellipse(0, 14, 34, 14, 0x02060b, 0.34);
+    const shadow = this.add.ellipse(0, 18, 44, 18, 0x02060b, 0.34);
     shadow.setStrokeStyle(1, 0xffffff, 0.03);
 
-    const aura = this.add.circle(0, 4, PLAYER_RADIUS + 4, player.team === "blue" ? 0x47b8ff : 0xff6d5e, 0.18);
+    const aura = this.add.circle(0, 6, PLAYER_RADIUS + 5, player.team === "blue" ? 0x47b8ff : 0xff6d5e, 0.18);
     aura.setStrokeStyle(3, player.team === "blue" ? 0x9fe6ff : 0xffb0a5, 0.58);
 
     const facingKey = this.getFacingTextureKey(player.facingAngle);
     const sprite = this.add.image(0, -2, facingKey);
-    sprite.setScale(2.35);
+    sprite.setScale(3.055);
     sprite.setDisplayOrigin(16, 24);
     sprite.setFlipX(Math.cos(player.facingAngle) < -0.15);
 
-    const hpSegments = [-18, -6, 6, 18].map((offset) => {
-      const segment = this.add.rectangle(offset, PLAYER_RADIUS + 16, 10, 8, 0xb9ff66, 1);
+    const hpSegments = [-23, -8, 8, 23].map((offset) => {
+      const segment = this.add.rectangle(offset, PLAYER_RADIUS + 20, 12, 9, 0xb9ff66, 1);
       segment.setStrokeStyle(1, 0xffffff, 0.22);
       return segment;
     });
 
     const label = this.add.text(0, -PLAYER_RADIUS - 22, player.nickname, {
       fontFamily: "Pretendard, Noto Sans KR, sans-serif",
-      fontSize: "15px",
+      fontSize: "17px",
       color: "#f4f7fb",
       fontStyle: "700"
     });

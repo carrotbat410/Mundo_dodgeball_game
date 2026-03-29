@@ -21,7 +21,8 @@ import type { Game, GamePlayer, Projectile, Room } from "../types/state.js";
 import { createId } from "./ids.js";
 
 const ARENA_RADIUS = MAP_RADIUS - PLAYER_RADIUS;
-const PROJECTILE_TTL_SEC = 2;
+const PROJECTILE_TTL_SEC = 2.4;
+const PROJECTILE_MAX_DISTANCE = MAP_RADIUS * 1.2;
 const RESULT_DELAY_SEC = 3;
 const CAST_LOCK_SEC = 0.5;
 const DIVIDER_NORMAL_X = Math.SQRT1_2;
@@ -396,7 +397,7 @@ export function advanceGames(deltaSec: number) {
 
       const distanceFromCenter = Math.hypot(projectile.x - MAP_CENTER_X, projectile.y - MAP_CENTER_Y);
 
-      if (projectile.remainingLifetime === 0 || distanceFromCenter > MAP_RADIUS) {
+      if (projectile.remainingLifetime === 0 || distanceFromCenter > PROJECTILE_MAX_DISTANCE) {
         continue;
       }
 
