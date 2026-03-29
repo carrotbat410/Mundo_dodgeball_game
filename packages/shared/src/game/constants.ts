@@ -12,5 +12,5 @@ export const MAP_CENTER_Y = 450;
 export const MAP_RADIUS = 300;
 export const PLAYER_RADIUS = 29;
 export const PROJECTILE_RADIUS = 10;
-export const PLAYER_MOVE_SPEED = 210;
+export const PLAYER_MOVE_SPEED = 294;
 export const PROJECTILE_SPEED = 936;
