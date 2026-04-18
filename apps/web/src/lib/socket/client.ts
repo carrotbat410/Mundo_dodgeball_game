@@ -12,16 +12,20 @@ function resolveSocketUrl() {
     return "http://localhost:4010";
   }
 
-  const { protocol, hostname } = window.location;
-  const port = hostname === "localhost" || hostname === "127.0.0.1" ? "4010" : "5000";
+  const { origin, hostname } = window.location;
 
-  return `${protocol}//${hostname}:${port}`;
+  if (hostname === "localhost" || hostname === "127.0.0.1") {
+    return "http://localhost:4010";
+  }
+
+  return origin;
 }
 
 export function getSocket() {
   if (!socket) {
     socket = io(resolveSocketUrl(), {
-      autoConnect: false
+      autoConnect: false,
+      path: "/socket.io"
     });
   }
 
