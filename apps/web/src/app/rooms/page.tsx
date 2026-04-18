@@ -189,7 +189,17 @@ export default function RoomsPage() {
       </header>
 
       {isCreateOpen ? (
-        <section className="panel" style={{ padding: 20, display: "grid", gap: 14 }}>
+        <section
+          className="panel"
+          style={{
+            maxWidth: 720,
+            width: "100%",
+            margin: "0 auto",
+            padding: 24,
+            display: "grid",
+            gap: 14
+          }}
+        >
           <h2 style={{ margin: 0 }}>{t(locale, "rooms.createTitle")}</h2>
           <input
             value={name}
@@ -204,11 +214,15 @@ export default function RoomsPage() {
                 type="button"
                 onClick={() => setMode(item)}
                 style={{
-                  padding: "10px 14px",
+                  width: 72,
+                  aspectRatio: "1 / 1",
+                  display: "grid",
+                  placeItems: "center",
                   borderRadius: 12,
                   border: item === mode ? "1px solid transparent" : "1px solid rgba(255,255,255,0.12)",
                   background: item === mode ? "rgba(71,184,255,0.18)" : "transparent",
-                  color: "var(--text)"
+                  color: "var(--text)",
+                  fontWeight: 700
                 }}
               >
                 {item}
@@ -234,93 +248,98 @@ export default function RoomsPage() {
           >
             {t(locale, "rooms.createSubmit")}
           </button>
-        </section>
-      ) : null}
-
-      <section style={{ display: "grid", gridTemplateColumns: "1.8fr 1fr", gap: 20, alignItems: "start" }}>
-        <div style={{ display: "grid", gap: 10, alignContent: "start" }}>
-          {sortedRooms.map((room) => (
-            <article
-              key={room.roomId}
-              className="panel"
-              style={{ padding: "14px 16px", display: "grid", gap: 8 }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-                <strong style={{ fontSize: 18, lineHeight: 1.25 }}>{room.name}</strong>
-                <span style={{ color: room.status === "waiting" ? "var(--accent)" : "var(--muted)" }}>
-                  {room.status === "waiting" ? t(locale, "rooms.waiting") : t(locale, "rooms.playing")}
-                </span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-                <span style={{ color: "var(--muted)", fontSize: 14 }}>
-                  {room.mode} · {room.currentPlayers}/{room.maxPlayers} · {room.isPrivate ? t(locale, "rooms.private") : t(locale, "rooms.public")} · 코드 {room.roomCode}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => handleJoinRoom(room)}
-                  style={{
-                    padding: "8px 12px",
-                    borderRadius: 12,
-                    border: 0,
-                    background: room.status === "waiting" ? "var(--blue)" : "rgba(255,255,255,0.14)",
-                    color: room.status === "waiting" ? "#04131d" : "var(--text)",
-                    fontWeight: 700,
-                    cursor: room.status === "waiting" ? "pointer" : "not-allowed"
-                  }}
-                >
-                  {room.status === "waiting" ? t(locale, "rooms.join") : t(locale, "rooms.joinBlocked")}
-                </button>
-              </div>
-            </article>
-          ))}
-        </div>
-        <aside className="panel" style={{ padding: 20, display: "grid", gap: 14, alignContent: "start", alignSelf: "start" }}>
-          <h2 style={{ margin: 0, fontSize: 22 }}>{t(locale, "rooms.joinByCode")}</h2>
-          <input
-            value={roomCode}
-            onChange={(event) => setRoomCode(event.target.value.toUpperCase())}
-            placeholder={t(locale, "rooms.codePlaceholder")}
-            style={{
-              padding: "14px 16px",
-              borderRadius: 14,
-              border: "1px solid rgba(255,255,255,0.12)",
-              background: "rgba(255,255,255,0.04)",
-              color: "var(--text)"
-            }}
-          />
-          <button
-            type="button"
-            onClick={handleJoinByCode}
-            style={{
-              padding: "12px 16px",
-              borderRadius: 14,
-              border: 0,
-              background: "rgba(255,255,255,0.12)",
-              color: "var(--text)",
-              cursor: "pointer"
-            }}
-          >
-            {t(locale, "rooms.joinByCode")}
-          </button>
-          <button
-            type="button"
-            onClick={() => getSocket().emit("lobby:list")}
-            style={{
-              padding: "12px 16px",
-              borderRadius: 14,
-              border: "1px solid rgba(255,255,255,0.12)",
-              background: "transparent",
-              color: "var(--text)",
-              cursor: "pointer"
-            }}
-          >
-            {t(locale, "rooms.refresh")}
-          </button>
           <p style={{ margin: 0, color: error ? "#ff9388" : "var(--muted)", lineHeight: 1.6 }}>
             {error || t(locale, "rooms.playingHint")}
           </p>
-        </aside>
-      </section>
+        </section>
+      ) : null}
+
+      {!isCreateOpen ? (
+        <section style={{ display: "grid", gridTemplateColumns: "1.8fr 1fr", gap: 20, alignItems: "start" }}>
+          <div style={{ display: "grid", gap: 10, alignContent: "start" }}>
+            {sortedRooms.map((room) => (
+              <article
+                key={room.roomId}
+                className="panel"
+                style={{ padding: "14px 16px", display: "grid", gap: 8 }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+                  <strong style={{ fontSize: 18, lineHeight: 1.25 }}>{room.name}</strong>
+                  <span style={{ color: room.status === "waiting" ? "var(--accent)" : "var(--muted)" }}>
+                    {room.status === "waiting" ? t(locale, "rooms.waiting") : t(locale, "rooms.playing")}
+                  </span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                  <span style={{ color: "var(--muted)", fontSize: 14 }}>
+                    {room.mode} · {room.currentPlayers}/{room.maxPlayers} · {room.isPrivate ? t(locale, "rooms.private") : t(locale, "rooms.public")} · 코드 {room.roomCode}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleJoinRoom(room)}
+                    style={{
+                      padding: "8px 12px",
+                      borderRadius: 12,
+                      border: 0,
+                      background: room.status === "waiting" ? "var(--blue)" : "rgba(255,255,255,0.14)",
+                      color: room.status === "waiting" ? "#04131d" : "var(--text)",
+                      fontWeight: 700,
+                      cursor: room.status === "waiting" ? "pointer" : "not-allowed"
+                    }}
+                  >
+                    {room.status === "waiting" ? t(locale, "rooms.join") : t(locale, "rooms.joinBlocked")}
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+          <aside className="panel" style={{ padding: 20, display: "grid", gap: 14, alignContent: "start", alignSelf: "start" }}>
+            <h2 style={{ margin: 0, fontSize: 22 }}>{t(locale, "rooms.joinByCode")}</h2>
+            <input
+              value={roomCode}
+              onChange={(event) => setRoomCode(event.target.value.toUpperCase())}
+              placeholder={t(locale, "rooms.codePlaceholder")}
+              style={{
+                padding: "14px 16px",
+                borderRadius: 14,
+                border: "1px solid rgba(255,255,255,0.12)",
+                background: "rgba(255,255,255,0.04)",
+                color: "var(--text)"
+              }}
+            />
+            <button
+              type="button"
+              onClick={handleJoinByCode}
+              style={{
+                padding: "12px 16px",
+                borderRadius: 14,
+                border: 0,
+                background: "rgba(255,255,255,0.12)",
+                color: "var(--text)",
+                cursor: "pointer"
+              }}
+            >
+              {t(locale, "rooms.joinByCode")}
+            </button>
+            <button
+              type="button"
+              onClick={() => getSocket().emit("lobby:list")}
+              style={{
+                padding: "12px 16px",
+                borderRadius: 14,
+                border: "1px solid rgba(255,255,255,0.12)",
+                background: "transparent",
+                color: "var(--text)",
+                cursor: "pointer"
+              }}
+            >
+              {t(locale, "rooms.refresh")}
+            </button>
+            <p style={{ margin: 0, color: error ? "#ff9388" : "var(--muted)", lineHeight: 1.6 }}>
+              {error || t(locale, "rooms.playingHint")}
+            </p>
+          </aside>
+        </section>
+      ) : null}
     </main>
   );
 }
