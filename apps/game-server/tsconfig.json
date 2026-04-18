@@ -5,6 +5,11 @@
     "outDir": "dist",
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "baseUrl": "../..",
+    "paths": {
+      "@mundo/shared": ["packages/shared/dist/index.d.ts"],
+      "@mundo/shared/*": ["packages/shared/dist/*"]
+    },
     "noEmit": false
   },
   "include": ["src/**/*.ts"]

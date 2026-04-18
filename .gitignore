@@ -7,3 +7,4 @@ coverage
 .DS_Store
 pnpm-lock.yaml
 *.tsbuildinfo
+packages/shared/src/**/*.js

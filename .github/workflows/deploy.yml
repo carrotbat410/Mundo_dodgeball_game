@@ -1,0 +1,27 @@
+name: 앱 서버 문도피구 배포
+
+on:
+  push:
+    branches: ["develop"]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 서버에 접속해 게임 서비스 갱신
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.APP_SERVER_HOST }}
+          username: ${{ secrets.APP_SERVER_USER }}
+          key: ${{ secrets.APP_SERVER_SSH_KEY }}
+          port: ${{ secrets.APP_SERVER_PORT || 22 }}
+          script: |
+            set -e
+            cd /home/ubuntu/src/Mundo_dodgeball_game
+            git fetch origin
+            git reset --hard origin/develop
+            cd /home/ubuntu/app-stack
+            sudo docker compose build mundo-web mundo-game
+            sudo docker compose up -d mundo-web mundo-game
