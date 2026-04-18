@@ -433,21 +433,25 @@ export default function RoomPage() {
           </div>
         </header>
         <div style={{ display: "grid", gridTemplateColumns: "1.7fr 1fr", gap: 20 }}>
-          <section style={{ display: "grid", gap: 16 }}>
-            <button type="button" className="panel" onClick={() => handleTeamChange("blue")} style={{ padding: 16, background: "rgba(71,184,255,0.12)", border: 0, color: "var(--text)", textAlign: "left", cursor: "pointer" }}>
-              <strong>{t(locale, "room.blueTeam")} ({bluePlayers.length})</strong>
-              <p style={{ margin: "10px 0 0", color: "var(--muted)" }}>{t(locale, "room.teamMoveBlue")}</p>
-            </button>
-            {bluePlayers.map((player) => (
-              <PlayerCard key={player.playerId} player={player} meId={me?.playerId ?? null} isHost={Boolean(me?.isHost)} onKick={handleKick} locale={locale} />
-            ))}
-            <button type="button" className="panel" onClick={() => handleTeamChange("red")} style={{ padding: 16, background: "rgba(255,109,94,0.12)", border: 0, color: "var(--text)", textAlign: "left", cursor: "pointer" }}>
-              <strong>{t(locale, "room.redTeam")} ({redPlayers.length})</strong>
-              <p style={{ margin: "10px 0 0", color: "var(--muted)" }}>{t(locale, "room.teamMoveRed")}</p>
-            </button>
-            {redPlayers.map((player) => (
-              <PlayerCard key={player.playerId} player={player} meId={me?.playerId ?? null} isHost={Boolean(me?.isHost)} onKick={handleKick} locale={locale} />
-            ))}
+          <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16, alignItems: "start" }}>
+            <section className="panel" style={{ padding: 16, display: "grid", gap: 14, background: "rgba(71,184,255,0.08)" }}>
+              <button type="button" onClick={() => handleTeamChange("blue")} style={{ padding: 16, background: "rgba(71,184,255,0.12)", border: 0, borderRadius: 14, color: "var(--text)", textAlign: "left", cursor: "pointer" }}>
+                <strong>{t(locale, "room.blueTeam")} ({bluePlayers.length})</strong>
+                <p style={{ margin: "10px 0 0", color: "var(--muted)" }}>{t(locale, "room.teamMoveBlue")}</p>
+              </button>
+              {bluePlayers.map((player) => (
+                <PlayerCard key={player.playerId} player={player} meId={me?.playerId ?? null} isHost={Boolean(me?.isHost)} onKick={handleKick} locale={locale} />
+              ))}
+            </section>
+            <section className="panel" style={{ padding: 16, display: "grid", gap: 14, background: "rgba(255,109,94,0.08)" }}>
+              <button type="button" onClick={() => handleTeamChange("red")} style={{ padding: 16, background: "rgba(255,109,94,0.12)", border: 0, borderRadius: 14, color: "var(--text)", textAlign: "left", cursor: "pointer" }}>
+                <strong>{t(locale, "room.redTeam")} ({redPlayers.length})</strong>
+                <p style={{ margin: "10px 0 0", color: "var(--muted)" }}>{t(locale, "room.teamMoveRed")}</p>
+              </button>
+              {redPlayers.map((player) => (
+                <PlayerCard key={player.playerId} player={player} meId={me?.playerId ?? null} isHost={Boolean(me?.isHost)} onKick={handleKick} locale={locale} />
+              ))}
+            </section>
           </section>
           <aside className="panel" style={{ padding: 18, display: "grid", gap: 14 }}>
             <h2 style={{ margin: 0, fontSize: 22 }}>{t(locale, "room.chat")}</h2>
