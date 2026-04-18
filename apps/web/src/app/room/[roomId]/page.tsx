@@ -457,7 +457,17 @@ export default function RoomPage() {
             <h2 style={{ margin: 0, fontSize: 22 }}>{t(locale, "room.chat")}</h2>
             <div
               ref={chatScrollRef}
-              style={{ minHeight: 220, maxHeight: 300, overflowY: "auto", color: "var(--muted)", lineHeight: 1.7, display: "grid", gap: 8 }}
+              style={{
+                minHeight: 220,
+                maxHeight: 300,
+                overflowY: "auto",
+                color: "var(--muted)",
+                lineHeight: 1.7,
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "flex-start",
+                gap: 8
+              }}
             >
               {chatEntries.length === 0 ? <span>{t(locale, "room.chatEmpty")}</span> : null}
               {chatEntries.map((entry) => (
