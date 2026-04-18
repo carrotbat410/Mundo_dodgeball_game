@@ -215,7 +215,9 @@ export default function RoomsPage() {
                 onClick={() => setMode(item)}
                 style={{
                   width: 72,
-                  aspectRatio: "1 / 1",
+                  height: 72,
+                  flex: "0 0 72px",
+                  padding: 0,
                   display: "grid",
                   placeItems: "center",
                   borderRadius: 12,
