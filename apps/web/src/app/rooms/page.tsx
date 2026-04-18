@@ -278,15 +278,7 @@ export default function RoomsPage() {
                   <button
                     type="button"
                     onClick={() => handleJoinRoom(room)}
-                    style={{
-                      padding: "8px 12px",
-                      borderRadius: 12,
-                      border: 0,
-                      background: room.status === "waiting" ? "var(--blue)" : "rgba(255,255,255,0.14)",
-                      color: room.status === "waiting" ? "#04131d" : "var(--text)",
-                      fontWeight: 700,
-                      cursor: room.status === "waiting" ? "pointer" : "not-allowed"
-                    }}
+                    className={room.status === "waiting" ? "room-join-button room-join-button-active" : "room-join-button"}
                   >
                     {room.status === "waiting" ? t(locale, "rooms.join") : t(locale, "rooms.joinBlocked")}
                   </button>

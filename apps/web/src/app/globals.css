@@ -300,6 +300,34 @@ body::after {
   box-shadow: none;
 }
 
+.room-join-button {
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--text);
+  font-weight: 700;
+  cursor: not-allowed;
+  transition: background 160ms ease, transform 160ms ease, box-shadow 160ms ease, filter 160ms ease;
+}
+
+.room-join-button-active {
+  background: linear-gradient(180deg, #f0e6d2 0%, #d3b06b 56%, #9b7238 100%);
+  color: #1a1309;
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 248, 234, 0.68),
+    0 10px 24px rgba(120, 86, 38, 0.22);
+}
+
+.room-join-button-active:hover {
+  transform: translateY(-1px);
+  filter: saturate(1.05) brightness(1.03);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 248, 234, 0.72),
+    0 14px 28px rgba(120, 86, 38, 0.28);
+}
+
 @media (max-width: 768px) {
   .page-shell {
     padding: 20px;
