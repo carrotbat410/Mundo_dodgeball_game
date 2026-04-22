@@ -37,7 +37,6 @@ export class RoomGameScene extends Phaser.Scene {
   private players = new Map<string, PlayerVisual>();
   private projectiles = new Map<string, ProjectileVisual>();
   private previousHp = new Map<string, number>();
-  private statusText?: Phaser.GameObjects.Text;
   private countdownText?: Phaser.GameObjects.Text;
   private onMoveCommand: ((x: number, y: number) => void) | null = null;
   private onCastCommand: ((x: number, y: number) => void) | null = null;
@@ -122,13 +121,6 @@ export class RoomGameScene extends Phaser.Scene {
     this.countdownText.setOrigin(0.5);
     this.countdownText.setDepth(1000);
 
-    this.statusText = this.add.text(width / 2, height - 56, this.copy.waiting, {
-      fontFamily: "Pretendard, Noto Sans KR, sans-serif",
-      fontSize: "14px",
-      color: "#9fb2c8"
-    });
-    this.statusText.setOrigin(0.5);
-    this.statusText.setDepth(1000);
   }
 
   update(_time: number, delta: number) {
@@ -151,7 +143,7 @@ export class RoomGameScene extends Phaser.Scene {
   }
 
   updateSnapshot(snapshot: GameStateSnapshot) {
-    if (!this.statusText || !this.countdownText) {
+    if (!this.countdownText) {
       return;
     }
 
@@ -219,10 +211,6 @@ export class RoomGameScene extends Phaser.Scene {
     } else {
       this.countdownText.setText("");
     }
-
-    this.statusText.setText(
-      `${this.copy.statusPrefix} ${snapshot.status} · ${this.copy.remainingTimePrefix} ${snapshot.remainingTime.toFixed(1)}${this.copy.countdownSuffix} · ${this.copy.controlsHint}`
-    );
   }
 
   private ensurePlayerVisual(player: GamePlayerSnapshot) {

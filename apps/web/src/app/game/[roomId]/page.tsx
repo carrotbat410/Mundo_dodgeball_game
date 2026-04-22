@@ -126,12 +126,8 @@ export default function GamePage() {
         },
         {
           title: t(locale, "game.title"),
-          waiting: t(locale, "game.loading"),
           countdownPrefix: t(locale, "game.countdown"),
-          countdownSuffix: t(locale, "game.secondsUnit"),
-          statusPrefix: t(locale, "game.gameStatus"),
-          remainingTimePrefix: t(locale, "game.remainingTime"),
-          controlsHint: t(locale, "game.controlsShort")
+          countdownSuffix: t(locale, "game.secondsUnit")
         }
       );
 
@@ -169,6 +165,7 @@ export default function GamePage() {
   }, [gameState, meRoomPlayer]);
 
   const qProgress = meGamePlayer ? Math.max(0, Math.min(1, 1 - meGamePlayer.qCooldownRemaining / Q_COOLDOWN_SEC)) : 0;
+  const qCooldownStroke = 2 * Math.PI * 45;
   const resultLabel = getResultLabel(gameState?.result ?? null, meRoomPlayer?.team ?? null);
   const localizedResultLabel =
     resultLabel === "무승부"
@@ -184,16 +181,15 @@ export default function GamePage() {
               : resultLabel;
 
   return (
-    <main className="page-shell">
+    <main className="page-shell" style={{ padding: 16, minHeight: "100vh", overflow: "hidden" }}>
       <section
         className="panel"
         style={{
-          minHeight: 720,
-          padding: 24,
-          display: "grid",
-          gap: 20,
-          alignContent: "start",
-          position: "relative"
+          height: "calc(100vh - 32px)",
+          minHeight: 620,
+          padding: 12,
+          position: "relative",
+          overflow: "hidden"
         }}
       >
         {gameState?.status === "finished" && localizedResultLabel ? (
@@ -245,88 +241,195 @@ export default function GamePage() {
           </div>
         ) : null}
 
-        <div style={{ display: "grid", gap: 8 }}>
-          <p style={{ margin: 0, color: "var(--accent)", fontWeight: 700 }}>{t(locale, "game.scene")}</p>
-          <h1 style={{ margin: 0, fontSize: 36 }}>{t(locale, "game.title")}</h1>
-          <p style={{ margin: 0, color: error ? "#ff9388" : "var(--muted)", lineHeight: 1.6 }}>
+        <div
+          ref={containerRef}
+          style={{
+            width: "100%",
+            height: "100%",
+            display: "grid",
+            placeItems: "center",
+            overflow: "hidden",
+            borderRadius: 18,
+            background: "rgba(7,17,27,0.9)"
+          }}
+        />
+
+        <div
+          style={{
+            position: "absolute",
+            left: 28,
+            top: 28,
+            width: "min(420px, calc(100% - 56px))",
+            padding: "14px 16px",
+            borderRadius: 18,
+            background: "rgba(4, 7, 14, 0.76)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            display: "grid",
+            gap: 8,
+            zIndex: 4
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+            <div>
+              <p style={{ margin: 0, color: "var(--accent)", fontWeight: 700 }}>{t(locale, "game.scene")}</p>
+              <h1 style={{ margin: "4px 0 0", fontSize: 24 }}>{t(locale, "game.title")}</h1>
+            </div>
+            <span style={{ color: "var(--muted)", whiteSpace: "nowrap" }}>
+              {gameState ? getStatusLabel(locale, gameState.status) : t(locale, "game.loading")}
+            </span>
+          </div>
+          <p style={{ margin: 0, color: error ? "#ff9388" : "var(--muted)", lineHeight: 1.5, fontSize: 14 }}>
             {error || t(locale, "game.instructions")}
           </p>
+          <div style={{ display: "flex", gap: 14, flexWrap: "wrap", color: "var(--muted)", fontSize: 15, fontWeight: 600 }}>
+            <span>{t(locale, "game.roomName")}: {roomState?.room.name ?? t(locale, "game.loading")}</span>
+            <span>{t(locale, "game.mode")}: {gameState?.mode ?? roomState?.room.mode ?? "-"}</span>
+            <span>{t(locale, "game.remainingTime")}: {gameState ? gameState.remainingTime.toFixed(1) : "-"}</span>
+          </div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: 20 }}>
+        <aside
+          style={{
+            position: "absolute",
+            right: 28,
+            top: 28,
+            width: 300,
+            maxHeight: "calc(100% - 160px)",
+            padding: 14,
+            borderRadius: 18,
+            background: "rgba(4, 7, 14, 0.72)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            display: "grid",
+            gap: 10,
+            alignContent: "start",
+            overflowY: "auto",
+            zIndex: 4
+          }}
+        >
+          <h2 style={{ margin: 0, fontSize: 18 }}>{t(locale, "game.participants")}</h2>
+          {(gameState?.players ?? []).length === 0 ? <p style={{ margin: 0, color: "var(--muted)" }}>{t(locale, "game.loadingParticipants")}</p> : null}
+          {(gameState?.players ?? []).map((player) => (
+            <div
+              key={player.playerId}
+              style={{
+                padding: "10px 12px",
+                borderRadius: 12,
+                background: player.team === "blue" ? "rgba(71,184,255,0.12)" : "rgba(255,109,94,0.12)",
+                color: "var(--text)",
+                opacity: player.alive ? 1 : 0.55,
+                fontSize: 13
+              }}
+            >
+              {player.nickname} · {player.team === "blue" ? t(locale, "game.teamBlue") : t(locale, "game.teamRed")} · HP {player.hp} · {player.alive ? t(locale, "game.alive") : t(locale, "game.eliminated")}
+            </div>
+          ))}
+        </aside>
+
+        <div
+          style={{
+            position: "absolute",
+            left: "50%",
+            bottom: 24,
+            transform: "translateX(-50%)",
+            display: "grid",
+            justifyItems: "center",
+            gap: 8,
+            zIndex: 4
+          }}
+        >
           <div
-            className="panel"
             style={{
-              minHeight: 520,
-              padding: 16,
-              background: "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02))",
-              position: "relative"
+              position: "relative",
+              width: 92,
+              height: 92,
+              borderRadius: 14,
+              border: "2px solid rgba(200,170,110,0.56)",
+              background: "linear-gradient(180deg, rgba(22,31,42,0.96), rgba(4,7,14,0.96))",
+              boxShadow: "inset 0 1px 0 rgba(255,248,234,0.18), 0 12px 28px rgba(0,0,0,0.4)",
+              overflow: "hidden"
             }}
           >
-            <div
-              ref={containerRef}
+            <img
+              src="/sprites/cleaver.svg"
+              alt=""
               style={{
-                width: "100%",
-                minHeight: 488,
-                display: "grid",
-                placeItems: "center",
-                overflow: "hidden",
-                borderRadius: 18,
-                background: "rgba(7,17,27,0.9)"
+                position: "absolute",
+                inset: "22px 10px auto",
+                width: 70,
+                height: 40,
+                imageRendering: "pixelated",
+                filter: meGamePlayer?.qCooldownRemaining ? "grayscale(0.9) brightness(0.58)" : "drop-shadow(0 0 8px rgba(240,230,210,0.34))"
               }}
             />
             <div
               style={{
                 position: "absolute",
-                left: "50%",
-                bottom: 28,
-                transform: "translateX(-50%)",
-                width: 280,
-                padding: "14px 18px",
-                borderRadius: 18,
-                background: "rgba(4, 7, 14, 0.82)",
-                border: "1px solid rgba(255,255,255,0.08)",
+                inset: 0,
+                background: meGamePlayer?.qCooldownRemaining ? "rgba(2,6,12,0.48)" : "transparent"
+              }}
+            />
+            <svg
+              viewBox="0 0 100 100"
+              style={{
+                position: "absolute",
+                inset: 0,
+                width: "100%",
+                height: "100%",
+                transform: "rotate(-90deg)"
+              }}
+              aria-hidden="true"
+            >
+              <circle
+                cx="50"
+                cy="50"
+                r="45"
+                fill="none"
+                stroke="rgba(255,255,255,0.1)"
+                strokeWidth="6"
+              />
+              <circle
+                cx="50"
+                cy="50"
+                r="45"
+                fill="none"
+                stroke={meGamePlayer?.qCooldownRemaining ? "rgba(185,199,218,0.92)" : "rgba(185,255,102,0.95)"}
+                strokeWidth="6"
+                strokeLinecap="round"
+                strokeDasharray={qCooldownStroke}
+                strokeDashoffset={qCooldownStroke * (1 - qProgress)}
+              />
+            </svg>
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
                 display: "grid",
-                gap: 10
+                placeItems: "center",
+                color: meGamePlayer?.qCooldownRemaining ? "var(--text)" : "var(--accent)",
+                fontSize: meGamePlayer?.qCooldownRemaining ? 22 : 16,
+                fontWeight: 800,
+                textShadow: "0 2px 8px rgba(0,0,0,0.75)"
               }}
             >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <strong>{t(locale, "game.qSkill")}</strong>
-                <span style={{ color: meGamePlayer?.qCooldownRemaining ? "var(--muted)" : "var(--accent)", fontWeight: 700 }}>
-                  {meGamePlayer ? (meGamePlayer.qCooldownRemaining > 0 ? `${meGamePlayer.qCooldownRemaining.toFixed(1)}s` : t(locale, "game.ready")) : "-"}
-                </span>
-              </div>
-              <div style={{ height: 10, borderRadius: 999, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
-                <div
-                  style={{
-                    width: `${qProgress * 100}%`,
-                    height: "100%",
-                    background: meGamePlayer?.qCooldownRemaining ? "linear-gradient(90deg, #6f7f96, #b8c7da)" : "linear-gradient(90deg, #b9ff66, #dbff8b)"
-                  }}
-                />
-              </div>
+              {meGamePlayer ? (meGamePlayer.qCooldownRemaining > 0 ? meGamePlayer.qCooldownRemaining.toFixed(1) : "Q") : "-"}
             </div>
+            <span
+              style={{
+                position: "absolute",
+                left: 6,
+                bottom: 4,
+                color: "rgba(240,230,210,0.88)",
+                fontSize: 13,
+                fontWeight: 800,
+                textShadow: "0 1px 4px rgba(0,0,0,0.8)"
+              }}
+            >
+              Q
+            </span>
           </div>
-
-          <aside className="panel" style={{ padding: 20, display: "grid", gap: 14, alignContent: "start" }}>
-            <h2 style={{ margin: 0, fontSize: 22 }}>{t(locale, "game.sidebar")}</h2>
-            <div style={{ display: "grid", gap: 8, color: "var(--muted)" }}>
-              <span>{t(locale, "game.roomName")}: {roomState?.room.name ?? t(locale, "game.loading")}</span>
-              <span>{t(locale, "game.mode")}: {gameState?.mode ?? roomState?.room.mode ?? "-"}</span>
-              <span>{t(locale, "game.roomStatus")}: {roomState ? getStatusLabel(locale, roomState.room.status) : t(locale, "game.loading")}</span>
-              <span>{t(locale, "game.gameStatus")}: {gameState ? getStatusLabel(locale, gameState.status) : t(locale, "game.loading")}</span>
-              <span>{t(locale, "game.countdown")}: {gameState ? gameState.countdownRemaining.toFixed(1) : "-"}</span>
-              <span>{t(locale, "game.remainingTime")}: {gameState ? gameState.remainingTime.toFixed(1) : "-"}</span>
-              <span>{t(locale, "game.projectileCount")}: {gameState?.projectiles.length ?? 0}</span>
-            </div>
-            <h2 style={{ margin: "8px 0 0", fontSize: 22 }}>{t(locale, "game.participants")}</h2>
-            {(gameState?.players ?? []).length === 0 ? <p style={{ margin: 0, color: "var(--muted)" }}>{t(locale, "game.loadingParticipants")}</p> : null}
-            {(gameState?.players ?? []).map((player) => (
-              <div key={player.playerId} style={{ padding: "12px 14px", borderRadius: 14, background: "rgba(255,255,255,0.04)", color: "var(--text)", opacity: player.alive ? 1 : 0.55 }}>
-                {player.nickname} · {player.team === "blue" ? t(locale, "game.teamBlue") : t(locale, "game.teamRed")} · HP {player.hp} · {player.alive ? t(locale, "game.alive") : t(locale, "game.eliminated")}
-              </div>
-            ))}
-          </aside>
+          <strong style={{ color: meGamePlayer?.qCooldownRemaining ? "var(--muted)" : "var(--accent)", fontSize: 13 }}>
+            {meGamePlayer?.qCooldownRemaining ? t(locale, "game.qSkill") : t(locale, "game.ready")}
+          </strong>
         </div>
       </section>
     </main>

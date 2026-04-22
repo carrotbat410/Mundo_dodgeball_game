@@ -5,12 +5,8 @@ import { RoomGameScene } from "./scenes/RoomGameScene";
 
 export interface RoomGameCopy {
   title: string;
-  waiting: string;
   countdownPrefix: string;
   countdownSuffix: string;
-  statusPrefix: string;
-  remainingTimePrefix: string;
-  controlsHint: string;
 }
 
 export interface RoomGameController {

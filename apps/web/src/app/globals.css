@@ -40,9 +40,9 @@ body::before {
   position: fixed;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(2, 7, 14, 0.18), rgba(2, 7, 14, 0.74)),
-    url("/sprites/baron-surroundings.svg") center top / cover no-repeat;
-  opacity: 0.14;
+    linear-gradient(180deg, rgba(2, 7, 14, 0.08), rgba(2, 7, 14, 0.56)),
+    url("/images/forest.webp") center center / cover no-repeat;
+  opacity: 0.28;
   pointer-events: none;
 }
 

@@ -74,7 +74,7 @@
   "room.startHint": "정원 충족 + 방장 제외 전원 준비 완료 시 방장이 시작할 수 있습니다.",
   "room.kickConfirm": "{nickname}님을 정말 강퇴할까요?",
   "game.scene": "Game Scene",
-  "game.title": "문도피구 전장",
+  "game.title": "문도피구",
   "game.returnToLobby": "로비로 돌아가기",
   "game.returnToLobbySoon": "{seconds}초 후 로비로 돌아갑니다.",
   "game.result.draw": "무승부",
