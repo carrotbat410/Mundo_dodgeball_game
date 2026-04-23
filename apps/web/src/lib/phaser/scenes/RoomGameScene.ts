@@ -12,6 +12,10 @@ import {
 } from "@mundo/shared";
 import type { RoomGameCopy } from "../createGame";
 
+const ARENA_BACKGROUND_OFFSET_X = -95;
+const ARENA_BACKGROUND_OFFSET_Y = 28;
+const ARENA_BACKGROUND_SCALE = 1.08;
+
 interface PlayerVisual {
   container: Phaser.GameObjects.Container;
   label: Phaser.GameObjects.Text;
@@ -72,6 +76,7 @@ export class RoomGameScene extends Phaser.Scene {
     this.load.image("mundo-brawler-side-front", "/sprites/mundo-brawler-side-front.svg");
     this.load.image("mundo-brawler-side-back", "/sprites/mundo-brawler-side-back.svg");
     this.load.image("cleaver", "/sprites/cleaver.svg");
+    this.load.image("mundo-arena-bg", "/images/mundo-arena-bg.png");
     this.load.image("baron-floor-cracks", "/sprites/baron-floor-cracks.svg");
     this.load.image("baron-surroundings", "/sprites/baron-surroundings.svg");
     this.load.image("pink-ward", "/sprites/pink-ward.svg");
@@ -259,13 +264,22 @@ export class RoomGameScene extends Phaser.Scene {
     bg.fillGradientStyle(0x081019, 0x081019, 0x132334, 0x132334, 1);
     bg.fillRect(0, 0, width, height);
 
-    const surroundings = this.add.image(width / 2, height / 2, "baron-surroundings");
+    const surroundings = this.add.image(
+      width / 2 + ARENA_BACKGROUND_OFFSET_X,
+      height / 2 + ARENA_BACKGROUND_OFFSET_Y,
+      "mundo-arena-bg"
+    );
     surroundings.setDepth(-195);
-    surroundings.setDisplaySize(width, height);
+    surroundings.setDisplaySize(width * ARENA_BACKGROUND_SCALE, height * ARENA_BACKGROUND_SCALE);
+    surroundings.setAlpha(1);
+
+    const backgroundShade = this.add.rectangle(0, 0, width, height, 0x02070f, 0.08);
+    backgroundShade.setOrigin(0, 0);
+    backgroundShade.setDepth(-194);
 
     const outerTerrain = this.add.graphics();
     outerTerrain.setDepth(-190);
-    outerTerrain.fillStyle(0x294028, 0.96);
+    outerTerrain.fillStyle(0x294028, 0);
     outerTerrain.fillPoints(
       [
         new Phaser.Geom.Point(0, 0),
@@ -282,7 +296,7 @@ export class RoomGameScene extends Phaser.Scene {
       ],
       true
     );
-    outerTerrain.fillStyle(0x1f3422, 0.9);
+    outerTerrain.fillStyle(0x1f3422, 0);
     outerTerrain.fillPoints(
       [
         new Phaser.Geom.Point(1124, 700),
@@ -301,44 +315,44 @@ export class RoomGameScene extends Phaser.Scene {
 
     const ravine = this.add.graphics();
     ravine.setDepth(-180);
-    ravine.fillStyle(0x0b1018, 0.96);
+    ravine.fillStyle(0x0b1018, 0);
     ravine.fillEllipse(MAP_CENTER_X, MAP_CENTER_Y + 18, MAP_RADIUS * 2.4, MAP_RADIUS * 1.82);
-    ravine.fillStyle(0x101720, 0.92);
+    ravine.fillStyle(0x101720, 0);
     ravine.fillEllipse(MAP_CENTER_X, MAP_CENTER_Y + 8, MAP_RADIUS * 2.16, MAP_RADIUS * 1.56);
 
     const cliff = this.add.graphics();
     cliff.setDepth(-160);
-    cliff.fillStyle(0x2f3844, 1);
+    cliff.fillStyle(0x2f3844, 0);
     cliff.fillEllipse(MAP_CENTER_X, MAP_CENTER_Y - 4, MAP_RADIUS * 2.04, MAP_RADIUS * 1.4);
-    cliff.fillStyle(0x1c2530, 1);
+    cliff.fillStyle(0x1c2530, 0);
     cliff.fillEllipse(MAP_CENTER_X, MAP_CENTER_Y + 6, MAP_RADIUS * 1.92, MAP_RADIUS * 1.28);
-    cliff.lineStyle(10, 0x596779, 0.28);
+    cliff.lineStyle(8, 0xb7cad8, 0);
     cliff.strokeEllipse(MAP_CENTER_X, MAP_CENTER_Y - 2, MAP_RADIUS * 2.02, MAP_RADIUS * 1.38);
-    cliff.lineStyle(4, 0xb7cad8, 0.08);
+    cliff.lineStyle(3, 0xb7cad8, 0);
     cliff.strokeEllipse(MAP_CENTER_X, MAP_CENTER_Y - 12, MAP_RADIUS * 1.82, MAP_RADIUS * 1.16);
 
     const water = this.add.graphics();
     water.setDepth(-120);
-    water.fillStyle(0x091c2d, 0.98);
+    water.fillStyle(0x091c2d, 0);
     water.fillEllipse(MAP_CENTER_X, MAP_CENTER_Y + 26, MAP_RADIUS * 2.02, MAP_RADIUS * 1.92);
-    water.fillStyle(0x0b2740, 0.92);
+    water.fillStyle(0x0b2740, 0);
     water.fillEllipse(MAP_CENTER_X, MAP_CENTER_Y + 24, MAP_RADIUS * 1.88, MAP_RADIUS * 1.74);
-    water.fillStyle(0x103d61, 0.58);
+    water.fillStyle(0x103d61, 0);
     water.fillEllipse(MAP_CENTER_X + 8, MAP_CENTER_Y + 22, MAP_RADIUS * 1.56, MAP_RADIUS * 1.42);
-    water.fillStyle(0x4b9ac5, 0.08);
+    water.fillStyle(0x4b9ac5, 0);
     water.fillEllipse(MAP_CENTER_X - 48, MAP_CENTER_Y + 6, MAP_RADIUS * 1.02, MAP_RADIUS * 0.52);
     water.fillEllipse(MAP_CENTER_X + 82, MAP_CENTER_Y + 44, MAP_RADIUS * 0.88, MAP_RADIUS * 0.46);
 
     const floor = this.add.graphics();
     floor.setDepth(-110);
-    floor.fillStyle(0x14263a, 0.9);
+    floor.fillStyle(0x14263a, 0);
     floor.fillEllipse(MAP_CENTER_X, MAP_CENTER_Y + 22, MAP_RADIUS * 2.08, MAP_RADIUS * 1.96);
-    floor.fillStyle(0x19293f, 0.64);
+    floor.fillStyle(0x19293f, 0);
     floor.fillEllipse(MAP_CENTER_X + 12, MAP_CENTER_Y + 30, MAP_RADIUS * 1.78, MAP_RADIUS * 1.62);
 
     const corruption = this.add.image(MAP_CENTER_X - 8, MAP_CENTER_Y + 24, "baron-floor-cracks");
     corruption.setDepth(-101);
-    corruption.setAlpha(0.92);
+    corruption.setAlpha(0);
     corruption.setDisplaySize(MAP_RADIUS * 2.92, MAP_RADIUS * 2.58);
 
     const playableGlow = this.add.graphics();
@@ -347,7 +361,7 @@ export class RoomGameScene extends Phaser.Scene {
 
     const teamWashBlue = this.add.graphics();
     teamWashBlue.setDepth(-95);
-    teamWashBlue.fillStyle(0x4b8cff, 0.045);
+    teamWashBlue.fillStyle(0x4b8cff, 0);
     teamWashBlue.beginPath();
     teamWashBlue.moveTo(MAP_CENTER_X - 240, MAP_CENTER_Y + 126);
     teamWashBlue.lineTo(MAP_CENTER_X - 278, MAP_CENTER_Y + 44);
@@ -360,7 +374,7 @@ export class RoomGameScene extends Phaser.Scene {
 
     const teamWashRed = this.add.graphics();
     teamWashRed.setDepth(-95);
-    teamWashRed.fillStyle(0xff6f78, 0.045);
+    teamWashRed.fillStyle(0xff6f78, 0);
     teamWashRed.beginPath();
     teamWashRed.moveTo(MAP_CENTER_X + 248, MAP_CENTER_Y - 104);
     teamWashRed.lineTo(MAP_CENTER_X + 286, MAP_CENTER_Y - 12);
@@ -399,14 +413,14 @@ export class RoomGameScene extends Phaser.Scene {
 
     const outerPlayableBorder = this.add.graphics();
     outerPlayableBorder.setDepth(-93);
-    outerPlayableBorder.lineStyle(8, 0xb545ff, 0.24);
+    outerPlayableBorder.lineStyle(7, 0xb545ff, 0.18);
     outerPlayableBorder.strokeEllipse(MAP_CENTER_X, MAP_CENTER_Y + 24, MAP_RADIUS * 2.1, MAP_RADIUS * 2.02);
-    outerPlayableBorder.lineStyle(18, 0xca72ff, 0.05);
+    outerPlayableBorder.lineStyle(16, 0xca72ff, 0.04);
     outerPlayableBorder.strokeEllipse(MAP_CENTER_X, MAP_CENTER_Y + 24, MAP_RADIUS * 2.18, MAP_RADIUS * 2.08);
 
     const innerRim = this.add.graphics();
     innerRim.setDepth(-121);
-    innerRim.lineStyle(22, 0x0a1018, 0.32);
+    innerRim.lineStyle(18, 0x0a1018, 0);
     innerRim.strokeEllipse(MAP_CENTER_X, MAP_CENTER_Y + 18, MAP_RADIUS * 2.08, MAP_RADIUS * 1.96);
 
     const continuousWallShadow = this.add.polygon(
@@ -417,7 +431,7 @@ export class RoomGameScene extends Phaser.Scene {
         1178, 362, 1152, 466, 1074, 556, 952, 618, 800, 646, 654, 634, 530, 596, 454, 532, 420, 436
       ],
       0x151a20,
-      0.84
+      0
     );
     continuousWallShadow.setOrigin(0, 0);
     continuousWallShadow.setDepth(-179);
@@ -430,11 +444,11 @@ export class RoomGameScene extends Phaser.Scene {
         1150, 364, 1126, 458, 1056, 540, 944, 596, 804, 620, 670, 610, 556, 576, 482, 516, 448, 430
       ],
       0x5d6672,
-      0.92
+      0
     );
     continuousWallBase.setOrigin(0, 0);
     continuousWallBase.setDepth(-178.5);
-    continuousWallBase.setStrokeStyle(6, 0xd8e2eb, 0.05);
+    continuousWallBase.setStrokeStyle(6, 0xd8e2eb, 0);
 
     const continuousWallFace = this.add.polygon(
       0,
@@ -444,11 +458,11 @@ export class RoomGameScene extends Phaser.Scene {
         1100, 370, 1080, 446, 1016, 514, 920, 560, 798, 580, 684, 572, 590, 544, 528, 494, 492, 424
       ],
       0x8f99a6,
-      0.16
+      0
     );
     continuousWallFace.setOrigin(0, 0);
     continuousWallFace.setDepth(-178.25);
-    continuousWallFace.setStrokeStyle(3, 0xf2f6fb, 0.04);
+    continuousWallFace.setStrokeStyle(3, 0xf2f6fb, 0);
 
     const wallCrest = this.add.polygon(
       0,
@@ -460,15 +474,15 @@ export class RoomGameScene extends Phaser.Scene {
         682, 132, 626, 150, 574, 178, 520, 208, 484, 230
       ],
       0x6a7480,
-      0.95
+      0
     );
     wallCrest.setOrigin(0, 0);
     wallCrest.setDepth(-178.1);
-    wallCrest.setStrokeStyle(5, 0xe7edf4, 0.08);
+    wallCrest.setStrokeStyle(5, 0xe7edf4, 0);
 
     const wallCrestHighlight = this.add.graphics();
     wallCrestHighlight.setDepth(-178.05);
-    wallCrestHighlight.lineStyle(5, 0xf4f8fc, 0.14);
+    wallCrestHighlight.lineStyle(4, 0xf4f8fc, 0);
     [
       [498, 190, 528, 150, 560, 156],
       [610, 124, 646, 132, 700, 96],
@@ -486,7 +500,7 @@ export class RoomGameScene extends Phaser.Scene {
 
     const wallInnerShadow = this.add.graphics();
     wallInnerShadow.setDepth(-178.02);
-    wallInnerShadow.lineStyle(14, 0x14181e, 0.24);
+    wallInnerShadow.lineStyle(12, 0x14181e, 0);
     wallInnerShadow.beginPath();
     wallInnerShadow.moveTo(486, 332);
     wallInnerShadow.lineTo(526, 266);
@@ -534,19 +548,19 @@ export class RoomGameScene extends Phaser.Scene {
     ];
 
     wallMasses.forEach((mass, index) => {
-      const shadow = this.add.polygon(0, 0, mass.shadow, 0x161b22, 0.92);
+      const shadow = this.add.polygon(0, 0, mass.shadow, 0x161b22, 0);
       shadow.setOrigin(0, 0);
       shadow.setDepth(-178 + index * 3);
 
-      const base = this.add.polygon(0, 0, mass.base, 0x697584, 0.98);
+      const base = this.add.polygon(0, 0, mass.base, 0x697584, 0);
       base.setOrigin(0, 0);
       base.setDepth(-177 + index * 3);
-      base.setStrokeStyle(5, 0xd6e1eb, 0.09);
+      base.setStrokeStyle(4, 0xd6e1eb, 0);
 
-      const face = this.add.polygon(0, 0, mass.face, 0x95a2af, 0.22);
+      const face = this.add.polygon(0, 0, mass.face, 0x95a2af, 0);
       face.setOrigin(0, 0);
       face.setDepth(-176 + index * 3);
-      face.setStrokeStyle(2, 0xf3f7fb, 0.05);
+      face.setStrokeStyle(2, 0xf3f7fb, 0);
     });
 
     const ledges = [
@@ -557,10 +571,10 @@ export class RoomGameScene extends Phaser.Scene {
     ];
 
     ledges.forEach((points, index) => {
-      const polygon = this.add.polygon(0, 0, points, index % 2 === 0 ? 0x495462 : 0x3a424d, 0.96);
+      const polygon = this.add.polygon(0, 0, points, index % 2 === 0 ? 0x495462 : 0x3a424d, 0);
       polygon.setOrigin(0, 0);
       polygon.setDepth(-178 + index);
-      polygon.setStrokeStyle(3, 0xd6dee8, 0.06);
+      polygon.setStrokeStyle(2, 0xd6dee8, 0);
     });
 
     const cliffCrowns = [
@@ -571,15 +585,15 @@ export class RoomGameScene extends Phaser.Scene {
     ];
 
     cliffCrowns.forEach((points, index) => {
-      const crown = this.add.polygon(0, 0, points, index % 2 === 0 ? 0x717c89 : 0x5b6673, 0.98);
+      const crown = this.add.polygon(0, 0, points, index % 2 === 0 ? 0x717c89 : 0x5b6673, 0);
       crown.setOrigin(0, 0);
       crown.setDepth(-169 + index);
-      crown.setStrokeStyle(4, 0xd7e2ec, 0.08);
+      crown.setStrokeStyle(3, 0xd7e2ec, 0);
     });
 
     const fissures = this.add.graphics();
     fissures.setDepth(-118);
-    fissures.lineStyle(5, 0x993dff, 0.46);
+    fissures.lineStyle(4, 0x993dff, 0);
     fissures.beginPath();
     fissures.moveTo(564, 488);
     fissures.lineTo(638, 430);
@@ -600,7 +614,7 @@ export class RoomGameScene extends Phaser.Scene {
     fissures.lineTo(1048, 396);
     fissures.lineTo(1100, 336);
     fissures.strokePath();
-    fissures.lineStyle(2, 0xe1bcff, 0.26);
+    fissures.lineStyle(2, 0xe1bcff, 0);
     fissures.beginPath();
     fissures.moveTo(1048, 224);
     fissures.lineTo(1020, 272);
@@ -610,7 +624,7 @@ export class RoomGameScene extends Phaser.Scene {
 
     const wallCracks = this.add.graphics();
     wallCracks.setDepth(-166);
-    wallCracks.lineStyle(3, 0x202630, 0.34);
+    wallCracks.lineStyle(2, 0x202630, 0);
     [
       [506, 170, 526, 138, 548, 126, 564, 102],
       [694, 132, 714, 110, 736, 98, 754, 82],
@@ -628,7 +642,7 @@ export class RoomGameScene extends Phaser.Scene {
 
     const wallCorruption = this.add.graphics();
     wallCorruption.setDepth(-165.5);
-    wallCorruption.lineStyle(4, 0xa93cff, 0.28);
+    wallCorruption.lineStyle(3, 0xa93cff, 0);
     [
       [498, 206, 542, 188, 586, 176, 620, 158],
       [670, 150, 724, 136, 782, 126, 836, 130],
@@ -644,7 +658,7 @@ export class RoomGameScene extends Phaser.Scene {
       }
       wallCorruption.strokePath();
     });
-    wallCorruption.lineStyle(2, 0xe09dff, 0.18);
+    wallCorruption.lineStyle(2, 0xe09dff, 0);
     [
       [526, 196, 554, 184, 582, 176],
       [720, 138, 754, 130, 790, 128],
@@ -662,7 +676,7 @@ export class RoomGameScene extends Phaser.Scene {
 
     const crystals = this.add.graphics();
     crystals.setDepth(-140);
-    crystals.fillStyle(0x7a3fe0, 0.85);
+    crystals.fillStyle(0x7a3fe0, 0);
     crystals.fillPoints(
       [
         new Phaser.Geom.Point(1038, 238),
@@ -681,7 +695,7 @@ export class RoomGameScene extends Phaser.Scene {
       ],
       true
     );
-    crystals.fillStyle(0x5631a9, 0.84);
+    crystals.fillStyle(0x5631a9, 0);
     crystals.fillPoints(
       [
         new Phaser.Geom.Point(954, 126),
@@ -694,14 +708,14 @@ export class RoomGameScene extends Phaser.Scene {
 
     const mist = this.add.graphics();
     mist.setDepth(-80);
-    mist.fillStyle(0x8c5cff, 0.08);
+    mist.fillStyle(0x8c5cff, 0);
     mist.fillEllipse(MAP_CENTER_X - 120, MAP_CENTER_Y + 70, 220, 80);
-    mist.fillStyle(0x69d1ff, 0.06);
+    mist.fillStyle(0x69d1ff, 0);
     mist.fillEllipse(MAP_CENTER_X + 120, MAP_CENTER_Y + 28, 240, 72);
 
     const waterEdge = this.add.graphics();
     waterEdge.setDepth(-119);
-    waterEdge.lineStyle(8, 0xae49ff, 0.18);
+    waterEdge.lineStyle(7, 0xae49ff, 0);
     [
       [470, 544, 562, 574, 656, 592, 764, 600, 876, 590, 992, 548],
       [432, 462, 504, 424, 586, 396, 678, 366, 778, 342, 882, 318, 984, 268],
