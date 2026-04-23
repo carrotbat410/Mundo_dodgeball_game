@@ -71,10 +71,10 @@ export class RoomGameScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image("mundo-brawler-front", "/sprites/mundo-brawler-front.svg");
-    this.load.image("mundo-brawler-back", "/sprites/mundo-brawler-back.svg");
-    this.load.image("mundo-brawler-side-front", "/sprites/mundo-brawler-side-front.svg");
-    this.load.image("mundo-brawler-side-back", "/sprites/mundo-brawler-side-back.svg");
+    this.load.image("mundo-brawler-front", "/sprites/mundo-brawler-front.png");
+    this.load.image("mundo-brawler-back", "/sprites/mundo-brawler-back.png");
+    this.load.image("mundo-brawler-side-front", "/sprites/mundo-brawler-side-front.png");
+    this.load.image("mundo-brawler-side-back", "/sprites/mundo-brawler-side-back.png");
     this.load.image("cleaver", "/sprites/cleaver.svg");
     this.load.image("mundo-arena-bg", "/images/mundo-arena-bg.png");
     this.load.image("baron-floor-cracks", "/sprites/baron-floor-cracks.svg");
@@ -233,9 +233,9 @@ export class RoomGameScene extends Phaser.Scene {
 
     const facingKey = this.getFacingTextureKey(player.facingAngle);
     const sprite = this.add.image(0, -2, facingKey);
-    sprite.setScale(3.055);
-    sprite.setDisplayOrigin(16, 24);
-    sprite.setFlipX(Math.cos(player.facingAngle) < -0.15);
+    sprite.setScale(1.72);
+    sprite.setDisplayOrigin(32, 48);
+    sprite.setFlipX(false);
 
     const hpSegments = [-23, -8, 8, 23].map((offset) => {
       const segment = this.add.rectangle(offset, PLAYER_RADIUS + 20, 12, 9, 0xb9ff66, 1);
@@ -243,13 +243,13 @@ export class RoomGameScene extends Phaser.Scene {
       return segment;
     });
 
-    const label = this.add.text(0, -PLAYER_RADIUS - 22, player.nickname, {
+    const label = this.add.text(0, -PLAYER_RADIUS - 62, player.nickname, {
       fontFamily: "Pretendard, Noto Sans KR, sans-serif",
       fontSize: "17px",
       color: "#f4f7fb",
       fontStyle: "700"
     });
-    label.setOrigin(0.5);
+    label.setOrigin(0.5, 1);
 
     const container = this.add.container(player.x, player.y, [shadow, aura, sprite, ...hpSegments, label]);
     const visual = { container, label, hpSegments, shadow, aura, sprite, targetX: player.x, targetY: player.y, facingAngle: player.facingAngle };
@@ -752,7 +752,7 @@ export class RoomGameScene extends Phaser.Scene {
     visual.targetY = player.y;
     visual.facingAngle = player.facingAngle;
     visual.sprite.setTexture(this.getFacingTextureKey(player.facingAngle));
-    visual.sprite.setFlipX(Math.cos(player.facingAngle) < -0.15);
+    visual.sprite.setFlipX(false);
   }
 
   private getFacingTextureKey(angle: number) {
