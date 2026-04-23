@@ -5,10 +5,18 @@
 - 프로젝트 경로: `/Users/leechangmin/Documents/git-repos-carrotbat410/Mundo_dodgeball_game`
 - git 브랜치 전략:
   - `develop`: 기능 개발 브랜치
-  - `main`: 배포 브랜치
+  - `main`: 문서상 배포 브랜치였으나 현재 원격에는 없음
 - 배포 방식:
-  - `develop`에서 개발 후 `main`에 머지
-  - `main` 머지 후 배포
+  - 2026-04-23 확인 기준 원격 GitHub에는 `develop` 브랜치만 존재
+  - `origin/HEAD`도 `develop`
+  - 현재 운영 반영은 `develop` push 기준으로 처리
+- 운영 서버:
+  - IP: `168.107.4.77`
+  - SSH: `ubuntu@168.107.4.77`
+  - SSH key: `/Users/leechangmin/Documents/authKeys/oracle_cloud/instance-20260222-1310-key/ssh-key-2026-02-22.key`
+  - Oracle Cloud 인스턴스명: `instance-20260418-1412`
+  - 2026-04-23 기준 `/swapfile` 4GiB 설정 완료
+  - swap 설정: `/etc/fstab` 등록, `vm.swappiness=10`, `vm.vfs_cache_pressure=50`
 - 인코딩 기준: `UTF-8`
   - 한글 문구, 주석, 에러 메시지가 깨지지 않도록 반드시 UTF-8 유지
 

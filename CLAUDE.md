@@ -30,6 +30,20 @@
 
 성능을 위해 기본은 전체 E2E 대신 관련 레이어 중심 검증을 우선합니다.
 
+## 배포 / 운영 메모
+- 현재 원격 GitHub에는 `develop` 브랜치만 있으며 `origin/HEAD`도 `develop`입니다.
+- 문서상 `main` 머지 배포 흐름이 남아 있어도, 현재 실제 운영 반영은 `develop` push 기준으로 처리합니다.
+- 운영 서버 후보:
+  - IP: `168.107.4.77`
+  - SSH: `ubuntu@168.107.4.77`
+  - Key: `/Users/leechangmin/Documents/authKeys/oracle_cloud/instance-20260222-1310-key/ssh-key-2026-02-22.key`
+- 서버 상태 메모:
+  - Oracle Cloud 인스턴스명: `instance-20260418-1412`
+  - 2026-04-23 기준 RAM 약 `11GiB`, `/` 디스크 약 `96G`
+  - `/swapfile` 4GiB 설정 완료, `/etc/fstab` 등록 완료
+  - swap tuning: `vm.swappiness=10`, `vm.vfs_cache_pressure=50`
+- 서버 작업 전에는 `free -h`, `df -h /`, `swapon --show`로 현재 상태를 먼저 확인합니다.
+
 ## 도메인 용어
 - 문도피구: 이 게임 자체
 - 로비: 게스트 입장, 방 목록, 방 내부 대기실 흐름
