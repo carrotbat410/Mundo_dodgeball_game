@@ -233,6 +233,9 @@ export default function RoomPage() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
   const isChatComposingRef = useRef(false);
+  const hasLeftRoomRef = useRef(false);
+  const hasSyncedRoomRef = useRef(false);
+  const isTransitioningToGameRef = useRef(false);
   const locale = useMemo(() => detectLocale(), []);
   const [settingsDraft, setSettingsDraft] = useState<RoomSettingsDraft>({
     name: "",
@@ -253,6 +256,7 @@ export default function RoomPage() {
     const socket = getSocket();
 
     const handleRoomState = (payload: RoomState) => {
+      hasSyncedRoomRef.current = true;
       setRoomState(payload);
       setSettingsDraft((current) => ({
         name: payload.room.name,
@@ -301,9 +305,46 @@ export default function RoomPage() {
 
   useEffect(() => {
     if (roomState?.room.status === "countdown") {
+      isTransitioningToGameRef.current = true;
       router.push(`/game/${roomState.room.roomId}`);
     }
   }, [roomState, router]);
+
+  useEffect(() => {
+    const leaveRoomIfNeeded = () => {
+      if (hasLeftRoomRef.current || isTransitioningToGameRef.current || !hasSyncedRoomRef.current) {
+        return;
+      }
+
+      const session = getGuestSession();
+      const currentRoomId = getCurrentRoomId();
+
+      if (!session || !roomId || currentRoomId !== roomId) {
+        return;
+      }
+
+      hasLeftRoomRef.current = true;
+      getSocket().emit("room:leave");
+      clearCurrentRoomId();
+    };
+
+    const handlePageHide = () => {
+      leaveRoomIfNeeded();
+    };
+
+    const handlePopState = () => {
+      leaveRoomIfNeeded();
+    };
+
+    window.addEventListener("pagehide", handlePageHide);
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("pagehide", handlePageHide);
+      window.removeEventListener("popstate", handlePopState);
+      leaveRoomIfNeeded();
+    };
+  }, [roomId]);
 
   useEffect(() => {
     const node = chatScrollRef.current;
@@ -336,6 +377,7 @@ export default function RoomPage() {
   };
 
   const handleLeave = () => {
+    hasLeftRoomRef.current = true;
     getSocket().emit("room:leave");
     clearCurrentRoomId();
     router.push("/rooms");
