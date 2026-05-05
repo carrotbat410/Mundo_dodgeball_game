@@ -240,7 +240,7 @@ export default function RoomPage() {
   const locale = useMemo(() => detectLocale(), []);
   const [settingsDraft, setSettingsDraft] = useState<RoomSettingsDraft>({
     name: "",
-    mode: "2v2",
+    mode: "1v1",
     isPrivate: false,
     password: ""
   });

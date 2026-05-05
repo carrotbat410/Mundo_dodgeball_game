@@ -14,7 +14,7 @@ export default function RoomsPage() {
   const [error, setError] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [name, setName] = useState("");
-  const [mode, setMode] = useState<GameMode>("2v2");
+  const [mode, setMode] = useState<GameMode>("1v1");
   const [isPrivate, setIsPrivate] = useState(false);
   const [password, setPassword] = useState("");
   const [roomCode, setRoomCode] = useState("");
