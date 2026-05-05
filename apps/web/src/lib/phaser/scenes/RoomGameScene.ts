@@ -760,6 +760,10 @@ export class RoomGameScene extends Phaser.Scene {
     const dx = Math.cos(normalized);
     const dy = Math.sin(normalized);
 
+    if (Math.abs(dx) > 0.25) {
+      return dx >= 0 ? "mundo-brawler-side-front" : "mundo-brawler-side-back";
+    }
+
     if (dy < -0.55) {
       return "mundo-brawler-back";
     }
