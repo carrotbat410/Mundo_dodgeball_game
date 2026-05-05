@@ -11,9 +11,6 @@
   - `origin/HEAD`도 `develop`
   - 현재 운영 반영은 `develop` push 기준으로 처리
 - 운영 서버:
-  - IP: `168.107.4.77`
-  - SSH: `ubuntu@168.107.4.77`
-  - SSH key: `/Users/leechangmin/Documents/authKeys/oracle_cloud/instance-20260222-1310-key/ssh-key-2026-02-22.key`
   - Oracle Cloud 인스턴스명: `instance-20260418-1412`
   - 2026-04-23 기준 `/swapfile` 4GiB 설정 완료
   - swap 설정: `/etc/fstab` 등록, `vm.swappiness=10`, `vm.vfs_cache_pressure=50`

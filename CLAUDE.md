@@ -33,10 +33,6 @@
 ## 배포 / 운영 메모
 - 현재 원격 GitHub에는 `develop` 브랜치만 있으며 `origin/HEAD`도 `develop`입니다.
 - 문서상 `main` 머지 배포 흐름이 남아 있어도, 현재 실제 운영 반영은 `develop` push 기준으로 처리합니다.
-- 운영 서버 후보:
-  - IP: `168.107.4.77`
-  - SSH: `ubuntu@168.107.4.77`
-  - Key: `/Users/leechangmin/Documents/authKeys/oracle_cloud/instance-20260222-1310-key/ssh-key-2026-02-22.key`
 - 서버 상태 메모:
   - Oracle Cloud 인스턴스명: `instance-20260418-1412`
   - 2026-04-23 기준 RAM 약 `11GiB`, `/` 디스크 약 `96G`

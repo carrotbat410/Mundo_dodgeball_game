@@ -18,9 +18,6 @@
 
 ## 운영 서버 메모
 
-- 서버 IP: `168.107.4.77`
-- SSH 계정: `ubuntu`
-- SSH 키: `/Users/leechangmin/Documents/authKeys/oracle_cloud/instance-20260222-1310-key/ssh-key-2026-02-22.key`
 - 2026-04-23 기준 `/swapfile` 4GiB 설정 완료
 
 ## 서버 실행 명령어
