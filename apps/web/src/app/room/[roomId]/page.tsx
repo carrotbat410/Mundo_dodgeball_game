@@ -234,6 +234,7 @@ export default function RoomPage() {
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
   const isChatComposingRef = useRef(false);
   const hasLeftRoomRef = useRef(false);
+  const hasShownRoomClosedAlertRef = useRef(false);
   const hasSyncedRoomRef = useRef(false);
   const isTransitioningToGameRef = useRef(false);
   const locale = useMemo(() => detectLocale(), []);
@@ -254,6 +255,17 @@ export default function RoomPage() {
     }
 
     const socket = getSocket();
+    const closeRoomWithAlert = (message: string) => {
+      if (hasShownRoomClosedAlertRef.current) {
+        return;
+      }
+
+      hasShownRoomClosedAlertRef.current = true;
+      hasLeftRoomRef.current = true;
+      clearCurrentRoomId();
+      window.alert(message);
+      router.replace("/rooms");
+    };
 
     const handleRoomState = (payload: RoomState) => {
       hasSyncedRoomRef.current = true;
@@ -276,12 +288,15 @@ export default function RoomPage() {
     };
 
     const handleKicked = (payload: { message: string }) => {
-      clearCurrentRoomId();
-      window.alert(payload.message);
-      router.replace("/rooms");
+      closeRoomWithAlert(payload.message);
     };
 
-    const handleError = (payload: { message: string }) => {
+    const handleError = (payload: { code: string; message: string }) => {
+      if (payload.code === "ROOM_NOT_FOUND" || payload.code === "ROOM_ACCESS_DENIED") {
+        closeRoomWithAlert("방장이 방을 나가 방이 종료되었습니다.");
+        return;
+      }
+
       setError(payload.message);
     };
 

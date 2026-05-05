@@ -6,7 +6,7 @@ import { Q_COOLDOWN_SEC } from "@mundo/shared";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { detectLocale, t, tf } from "../../../lib/i18n/messages";
-import { getCurrentRoomId } from "../../../lib/room/currentRoom";
+import { clearCurrentRoomId, getCurrentRoomId } from "../../../lib/room/currentRoom";
 import { getSocket } from "../../../lib/socket/client";
 import { getGuestSession } from "../../../lib/session/guestSession";
 
@@ -54,6 +54,7 @@ export default function GamePage() {
   const [error, setError] = useState("");
   const containerRef = useRef<HTMLDivElement | null>(null);
   const gameRef = useRef<RoomGameController | null>(null);
+  const hasShownRoomClosedAlertRef = useRef(false);
   const locale = useMemo(() => detectLocale(), []);
 
   useEffect(() => {
@@ -66,6 +67,16 @@ export default function GamePage() {
     }
 
     const socket = getSocket();
+    const closeRoomWithAlert = (message: string) => {
+      if (hasShownRoomClosedAlertRef.current) {
+        return;
+      }
+
+      hasShownRoomClosedAlertRef.current = true;
+      clearCurrentRoomId();
+      window.alert(message);
+      router.replace("/rooms");
+    };
 
     const handleRoomState = (payload: RoomState) => {
       setRoomState(payload);
@@ -78,15 +89,21 @@ export default function GamePage() {
     };
 
     const handleError = (payload: { code: string; message: string }) => {
-      setError(payload.message);
-
       if (payload.code === "ROOM_NOT_FOUND" || payload.code === "ROOM_ACCESS_DENIED") {
-        router.replace("/rooms");
+        closeRoomWithAlert("방장이 방을 나가 방이 종료되었습니다.");
+        return;
       }
+
+      setError(payload.message);
+    };
+
+    const handleKicked = (payload: { message: string }) => {
+      closeRoomWithAlert(payload.message);
     };
 
     socket.on("room:state", handleRoomState);
     socket.on("game:state", handleGameState);
+    socket.on("room:kicked", handleKicked);
     socket.on("system:error", handleError);
     socket.emit("room:get-state", { roomId });
     socket.emit("game:get-state", { roomId });
@@ -94,6 +111,7 @@ export default function GamePage() {
     return () => {
       socket.off("room:state", handleRoomState);
       socket.off("game:state", handleGameState);
+      socket.off("room:kicked", handleKicked);
       socket.off("system:error", handleError);
     };
   }, [roomId, router]);

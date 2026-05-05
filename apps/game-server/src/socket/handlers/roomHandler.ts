@@ -55,6 +55,32 @@ function toFriendlyMessage(code: string, fallback: string) {
   return fallback;
 }
 
+function closeRoomWhenHostLeaves(io: GameIo, roomId: string, message: string) {
+  const room = serverState.rooms.get(roomId);
+
+  if (!room) {
+    return;
+  }
+
+  room.players.forEach((player) => {
+    const session = serverState.sessions.get(player.socketId);
+    if (session) {
+      session.currentRoomId = null;
+    }
+  });
+
+  io.to(room.id).emit("room:kicked", {
+    roomId: room.id,
+    message
+  });
+
+  removeGameByRoomId(room.id);
+  serverState.rooms.delete(room.id);
+  serverState.roomCodeIndex.delete(room.code);
+  void io.in(room.id).socketsLeave(room.id);
+  emitLobbyList(io);
+}
+
 export function handleRoomDisconnect(io: GameIo, socketId: string) {
   const session = serverState.sessions.get(socketId);
 
@@ -66,6 +92,13 @@ export function handleRoomDisconnect(io: GameIo, socketId: string) {
 
   if (!room) {
     session.currentRoomId = null;
+    return;
+  }
+
+  const leavingPlayer = getPlayerBySocket(room, socketId);
+
+  if (leavingPlayer?.isHost) {
+    closeRoomWhenHostLeaves(io, room.id, "방장이 방을 나가 방이 종료되었습니다.");
     return;
   }
 
@@ -82,7 +115,6 @@ export function handleRoomDisconnect(io: GameIo, socketId: string) {
     removeGameByRoomId(room.id);
   }
 
-  void io.in(room.id).socketsLeave(room.id);
   io.to(room.id).emit("room:system-message", {
     type: "player_left",
     message: `${removedPlayer.nickname}님이 방을 나갔습니다.`
