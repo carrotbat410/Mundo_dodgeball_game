@@ -4,7 +4,7 @@ import type { GameStateSnapshot, RoomPlayer, RoomState } from "@mundo/shared";
 import type { RoomGameController } from "../../../lib/phaser/createGame";
 import { Q_COOLDOWN_SEC } from "@mundo/shared";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { detectLocale, t, tf } from "../../../lib/i18n/messages";
 import { getCurrentRoomId } from "../../../lib/room/currentRoom";
 import { getSocket } from "../../../lib/socket/client";
@@ -179,11 +179,15 @@ export default function GamePage() {
             : resultLabel === "red_win"
               ? t(locale, "game.teamRed")
               : resultLabel;
+  const preventContextMenu = (event: MouseEvent<HTMLElement>) => {
+    event.preventDefault();
+  };
 
   return (
     <main className="page-shell" style={{ padding: 16, minHeight: "100vh", overflow: "hidden" }}>
       <section
         className="panel"
+        onContextMenu={preventContextMenu}
         style={{
           height: "calc(100vh - 32px)",
           minHeight: 620,

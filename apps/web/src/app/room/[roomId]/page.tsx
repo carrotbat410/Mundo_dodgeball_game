@@ -432,7 +432,7 @@ export default function RoomPage() {
             ) : null}
           </div>
         </header>
-        <div style={{ display: "grid", gridTemplateColumns: "1.7fr 1fr", gap: 20 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1.7fr 1fr", gap: 20, alignItems: "start" }}>
           <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16, alignItems: "start" }}>
             <section className="panel" style={{ padding: 16, display: "grid", gap: 14, background: "rgba(71,184,255,0.08)" }}>
               <button type="button" onClick={() => handleTeamChange("blue")} style={{ padding: 16, background: "rgba(71,184,255,0.12)", border: 0, borderRadius: 14, color: "var(--text)", textAlign: "left", cursor: "pointer" }}>
@@ -453,14 +453,18 @@ export default function RoomPage() {
               ))}
             </section>
           </section>
-          <aside className="panel" style={{ padding: 18, display: "grid", gap: 14 }}>
+          <aside
+            className="panel"
+            style={{ padding: 18, display: "grid", gap: 14, alignSelf: "start", gridTemplateRows: "auto minmax(0, 300px) auto auto" }}
+          >
             <h2 style={{ margin: 0, fontSize: 22 }}>{t(locale, "room.chat")}</h2>
             <div
               ref={chatScrollRef}
               style={{
-                minHeight: 220,
-                maxHeight: 300,
+                minHeight: 0,
+                height: 300,
                 overflowY: "auto",
+                overflowX: "hidden",
                 color: "var(--muted)",
                 lineHeight: 1.7,
                 display: "flex",
@@ -471,7 +475,15 @@ export default function RoomPage() {
             >
               {chatEntries.length === 0 ? <span>{t(locale, "room.chatEmpty")}</span> : null}
               {chatEntries.map((entry) => (
-                <div key={entry.id} style={{ color: entry.tone === "system" ? "var(--muted)" : "var(--text)" }}>
+                <div
+                  key={entry.id}
+                  style={{
+                    color: entry.tone === "system" ? "var(--muted)" : "var(--text)",
+                    whiteSpace: "pre-wrap",
+                    overflowWrap: "anywhere",
+                    wordBreak: "break-word"
+                  }}
+                >
                   {entry.sender ? <strong>{entry.sender}: </strong> : null}
                   {entry.text}
                 </div>
