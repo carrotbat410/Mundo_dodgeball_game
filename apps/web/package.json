@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@mundo/shared": "workspace:*",
-    "next": "15.3.4",
+    "next": "15.5.23",
     "phaser": "^3.90.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
